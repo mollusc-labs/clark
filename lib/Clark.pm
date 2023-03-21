@@ -8,21 +8,20 @@ sub startup ($self) {
   my $router = $self->routes;
 
   my $validate_csrf = $self->routes->under('/' => sub ($c) {
-        my $v = $c->validation;
-        if ($v->csrf_protect->has_error('csrf_token')) {
-            say 'error';
-            $c->render(text => '', status => 403);
-            return undef;
-        }
+      my $v = $c->validation;
+      if ($v->csrf_protect->has_error('csrf_token')) {
+        say 'error';
+        $c->render(text => '', status => 403);
+        return undef;
+      }
+      return 1;
+  });
 
-        return 1;
-    });
+  $router->any('/')->to('clark#index')->name('index');
+  $validate_csrf->post('/login')->to('clark#login')->name('login');
 
-    $router->any('/')->to('clark#index')->name('index');
-    $validate_csrf->post('/login')->to('clark#login')->name('login');
-
-    $router->get('/logs')->to('logs#index')->name('logs');
-    $validate_csrf->post('/logs')->to('logs#http_log')->name('http_log');
+  $router->get('/logs')->to('log#index')->name('logs');
+  $router->post('/logs')->to('log#log')->name('http_log');
 }
 
 1;
