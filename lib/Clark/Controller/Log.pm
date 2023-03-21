@@ -13,7 +13,12 @@ sub index ($self) {
 }
 
 sub log ($self) {
-    $self->app->log->debug($self->req->json);
+    unless ($self->req->json) {
+        $self->res->code(400);
+        return $self->render(text => '');
+    }
+    
+    $self->app->log->debug(Dumper $self->req->json);
     $self->res->code(201);
     $self->render(text => '');
 }
