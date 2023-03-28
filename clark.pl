@@ -8,4 +8,3 @@ use lib curfile->sibling('lib')->to_string;
 use Mojolicious::Commands;
 
 Mojolicious::Commands->start_app('Clark');
-

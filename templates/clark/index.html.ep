@@ -1,17 +1,17 @@
 % layout 'default';
 %= form_for 'login' => begin
-% if ('failed_login') {
-<div>
-  <b>Incorrect username or password, please try again.</b>
-</div>
-% }
-<div>
-  Name:<br>
-  %= text_field 'name'
-</div>
-<div>
-  Password:<br>
-  %= password_field 'password'
-</div>
-%= submit_button 'login'
+  % if (my $message = stash 'message') {
+  <div>
+    <%= $message %>
+  </div>
+  % }
+  <div>
+    Name<br>
+    %= text_field 'name'
+  </div>
+  <div>
+    Password<br>
+    %= password_field 'password'
+  </div>
+  %= submit_button 'login'
 % end

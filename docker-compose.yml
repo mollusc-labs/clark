@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  clark:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - [ '3000:3000' ]
+    expose: '3000'
+    depends_on:
+      - clark_database
+    networks:
+      - clark_net
+
+  clark_database:
+    image: mysql:latest
+    expose:
+      - 3306
+    env_file:
+      - .env
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASS: ${MYSQL_PASS}
+    networks:
+      - clark_net
+
+networks:
+  clark_net:
+    name: clark_net
