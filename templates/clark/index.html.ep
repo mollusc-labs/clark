@@ -1,5 +1,5 @@
 % layout 'default';
-%= form_for 'login' => begin
+%= form_for 'login', method => 'POST' => begin
   % if (my $message = stash 'message') {
   <div>
     <%= $message %>

@@ -22,6 +22,7 @@ sub _can_attempt_login {
 }
 
 sub index ($self) {
+    return $self->redirect_to('/dashboard') if $self->session('user');
     return $self->render;
 }
 
@@ -49,7 +50,11 @@ sub login ($self) {
 }
 
 sub logout ($self) {
+    if ( my $user = $self->session('user') ) {
+        $self->session( user => undef );
+    }
 
+    $self->redirect_to('/');
 }
 
 1;
