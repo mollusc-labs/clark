@@ -5,9 +5,9 @@ services:
     build: .
     env_file:
       - .env
-    ports:
-      - [ '3000:3000' ]
-    expose: '3000'
+    ports: [ '3000:3000' ]
+    expose:
+      - '3000'
     depends_on:
       - clark_database
     networks:
@@ -16,7 +16,7 @@ services:
   clark_database:
     image: mysql:latest
     expose:
-      - 3306
+      - '3306'
     env_file:
       - .env
     volumes:

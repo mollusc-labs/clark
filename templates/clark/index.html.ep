@@ -13,5 +13,6 @@
     Password<br>
     %= password_field 'password'
   </div>
+  %= csrf_field
   %= submit_button 'login'
 % end

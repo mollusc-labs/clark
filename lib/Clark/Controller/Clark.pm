@@ -7,7 +7,6 @@ use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 sub _try_login {
     my ( $user, $pass ) = @_;
-
 }
 
 sub _can_attempt_login {
@@ -23,7 +22,6 @@ sub _can_attempt_login {
 }
 
 sub index ($self) {
-    $self->stash( failed_login => 0 );
     return $self->render;
 }
 
@@ -41,13 +39,17 @@ sub login ($self) {
 
     if ( my $user_model = _try_login $user, $pass ) {
         $self->session( user => $user_model );
-        $self->req->redirect_to('/dashboard');
+        $self->redirect_to('/dashboard');
     }
     else {
         $self->app->log->info("Invalid login attempt for user: $user");
         $self->flash( message => 'Invalid Login' );
         $self->render;
     }
+}
+
+sub logout ($self) {
+
 }
 
 1;
