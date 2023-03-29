@@ -20,7 +20,8 @@ services:
     env_file:
       - .env
     volumes:
-      - ./data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/1.sql:ro
+      - ./data:/var/lib/mysql:rw
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_USER: ${MYSQL_USER}

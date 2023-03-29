@@ -2,17 +2,16 @@ package Clark::Controller::Log;
 
 use strict;
 use warnings;
-use experimental qw(say);
-
-use Data::Dumper;
-
+use experimental qw(signatures);
+use Mojo::Util   qw(secure_compare);
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
-sub index ($self) {
-    return $self->render;
+sub find ($self) {
+    my $logs = $self->log_repository->find( $self->req->params->to_hash );
+    return $self->render( json => $logs );
 }
 
-sub log ($self) {
+sub create ($self) {
     unless ( $self->req->json ) {
         $self->res->code(400);
         return $self->render( text => '' );

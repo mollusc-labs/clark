@@ -1,14 +1,49 @@
 package Clark;
 
+use strict;
+use warnings;
+use experimental;
+
 use Mojo::Base 'Mojolicious', -signatures;
 use Mojo::Log;
 use Mojolicious::Validator::Validation;
-use experimental qw(say);
+use Carp q<croak>;
+use Bread::Board;
+use Clark::Schema;
+
+our $VERSION = '0.1';
+
+# Generate service depdencencies with Bread::Board
+my $c = container 'Clark' => as {
+    container 'Database' => as {
+        service 'dsn'      => "DBI:mysql:database='clark';host=clark_database/";
+        service 'username' => $ENV{'MYSQL_USER'};
+        service 'password' => $ENV{'MYSQL_PASS'};
+
+        service 'dbh' => (
+            lifecycle => 'Singleton',
+            block     => sub {
+                my $s = shift;
+                return Clark::Schema->connect( $s->param('dsn'), $s->param('username'), $s->param('password') ) || croak 'Could not connect to database.';
+            },
+            dependencies => [ 'dsn', 'username', 'password' ]
+        );
+    };
+};
+
+no Bread::Board;
 
 my $api_key = $ENV{'CLARK_API_KEY'};
 
 sub startup ($self) {
-    my $log    = Mojo::Log->new( level => 'trace' );
+
+    # Database boilerplate
+    my $dbh = $c->resolve( service => 'Database/dbh' );
+    $self->helper( user_repository => $dbh->resultset('user') );
+    $self->helper( log_repository  => $dbh->resultset('log') );
+
+    my $log = Mojo::Log->new( level => 'trace' );
+
     my $router = $self->routes->under(
         '/' => sub ($c) {
             return 1 if $c->req->method ne 'POST';

@@ -1,5 +1,6 @@
 FROM perl:latest AS build
-RUN cpan Mojolicious
+RUN apt install libmysqlclient-dev
+RUN cpan Mojolicious Bread::Board DBI DBD::mysql DBIx::Class Crypt::Argon2 DateTime
 
 FROM build AS clark
 EXPOSE 3000
