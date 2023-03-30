@@ -2,16 +2,34 @@ package Clark::Schema::Result::User;
 
 use strict;
 use warnings;
-use experimental qw(signatures);
-use Mojo::Util   qw(secure_compare);
 use DateTime;
 use Clark::Util::Crypt;
 use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components('InflateColumn::DateTime');
+__PACKAGE__->load_components(qw/InflateColumn::DateTime Core/);
 
 __PACKAGE__->table('user');
-__PACKAGE__->add_columns(qw/ id name password is_admin last_login created_at /);
+__PACKAGE__->add_columns(
+    id => {
+        data_type => 'varchar',
+        size      => 36,
+        unique    => 1
+    },
+    name => {
+        data_type => 'varchar',
+        size      => 50,
+        unique    => 1
+    },
+    qw/password is_admin last_login created_at /
+);
+__PACKAGE__->mk_group_accessors();
 __PACKAGE__->set_primary_key('id');
+
+sub inflate_result {
+    my $self = shift;
+    my $ret  = next::method(@_);
+    delete $ret->{'password'};
+    return $ret;
+}
 
 1;

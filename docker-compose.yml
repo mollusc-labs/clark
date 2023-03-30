@@ -12,20 +12,26 @@ services:
       - clark_database
     networks:
       - clark_net
+    environment:
+      - CLARK_PRODUCTION=1
 
   clark_database:
     image: mysql:latest
     expose:
       - '3306'
+    ports: [ '3306:3306' ]
     env_file:
       - .env
+    restart: 'always'
     volumes:
       - ./sql/init.sql:/docker-entrypoint-initdb.d/1.sql:ro
       - ./data:/var/lib/mysql:rw
+      - ./my.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf:ro
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASS: ${MYSQL_PASS}
+      MYSQL_ROOT_HOST: '%'
     networks:
       - clark_net
 

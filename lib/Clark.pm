@@ -9,20 +9,25 @@ use Mojo::Log;
 use Mojolicious::Validator::Validation;
 use Carp q<croak>;
 use Bread::Board;
-use Clark::Schema;
 
 our $VERSION = '0.1';
 
 # Generate service depdencencies with Bread::Board
 my $c = container 'Clark' => as {
     container 'Database' => as {
-        service 'dsn'      => "DBI:mysql:database='clark';host=clark_database/";
-        service 'username' => $ENV{'MYSQL_USER'};
-        service 'password' => $ENV{'MYSQL_PASS'};
+        if ( $ENV{'CLARK_PRODUCTION'} ) {
+            service 'dsn' => "DBI:mysql:database='clark';host=clark_database";
+        }
+        else {
+            service 'dsn' => "DBI:mysql:database='clark';host=127.0.0.1";
+        }
+        service 'username' => $ENV{MYSQL_USER};
+        service 'password' => $ENV{MYSQL_PASS};
 
         service 'dbh' => (
             lifecycle => 'Singleton',
             block     => sub {
+                require Clark::Schema;
                 my $s = shift;
                 return Clark::Schema->connect( $s->param('dsn'), $s->param('username'), $s->param('password') ) || croak 'Could not connect to database.';
             },
@@ -39,8 +44,8 @@ sub startup ($self) {
 
     # Database boilerplate
     my $dbh = $c->resolve( service => 'Database/dbh' );
-    $self->helper( user_repository => $dbh->resultset('user') );
-    $self->helper( log_repository  => $dbh->resultset('log') );
+    $self->helper( user_repository => $dbh->resultset('User') );
+    $self->helper( log_repository  => $dbh->resultset('Log') );
 
     my $log = Mojo::Log->new( level => 'trace' );
 
@@ -73,8 +78,11 @@ sub startup ($self) {
     # For routes that require an API-key
     my $app_authorized_router = $router->under(
         '/' => sub ($c) {
-            my $req_api_key = split /\s/, $c->headers->to_hash->{'X-CLARK'};
-            return undef unless ($req_api_key);
+            my $req_api_key = split /\s/, $c->req->headers->to_hash->{'X-CLARK'};
+            unless ($req_api_key) {
+                $c->redirect_to('/');
+                return undef;
+            }
             return $req_api_key eq $api_key;
         }
     );
@@ -86,7 +94,9 @@ sub startup ($self) {
     $authorized_router->get('/dashboard')->to('dashboard#index')->name('dashboard');
 
     $app_authorized_router->post('/api/logs')->to('log#create')->name('create_log');
-    $app_authorized_router->get('/api/logs/:app_name')->to('log#find')->name('find_log');
+    $app_authorized_router->get('/api/logs')->to('log#find')->name('find_log');
+
+    $router->get('/api/test/logs')->to('log#find')->name('TEST_DELETE_ME');
 
     $self->app->log($log);
 }

@@ -1,8 +1,9 @@
 FROM perl:latest AS build
-RUN apt install libmysqlclient-dev
+RUN apt-get install -y default-libmysqlclient-dev
 RUN cpan Mojolicious Bread::Board DBI DBD::mysql DBIx::Class Crypt::Argon2 DateTime
 
 FROM build AS clark
+RUN sleep 1
 EXPOSE 3000
 WORKDIR /clark
 COPY . .

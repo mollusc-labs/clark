@@ -1,11 +1,15 @@
+-- This database should never be available over the internet
+
 BEGIN;
 -- Create and use Database
 CREATE DATABASE IF NOT EXISTS clark CHARACTER SET utf8;
 USE clark;
 
+GRANT CREATE, INSERT, UPDATE, DELETE, SELECT, REFERENCES, RELOAD ON clark.* TO 'clark'@'%';
+
 -- Create Tables
 CREATE TABLE IF NOT EXISTS user (
-    id VARCHAR(36) PRIMARY KEY GENERATED ALWAYS AS UUID(),
+    id VARCHAR(36) PRIMARY KEY DEFAULT UUID(),
     name VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL,
     is_admin BIT DEFAULT 0,
