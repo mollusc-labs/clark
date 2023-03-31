@@ -5,21 +5,37 @@ use warnings;
 use experimental qw(signatures);
 use Mojo::Util   qw(secure_compare);
 use Mojo::Base 'Mojolicious::Controller', -signatures;
+use Data::Dumper;
 
-sub find ($self) {
-    my $logs = $self->log_repository->find( $self->req->params->to_hash );
-    return $self->render( json => $logs );
+sub find {
+    my $self = shift;
+    my @logs = map {
+        { $_->get_inflated_columns }
+    } $self->log_repository->by_params( %{ $self->req->params->to_hash } );
+    return $self->render( json => \@logs );
 }
 
-sub create ($self) {
-    unless ( $self->req->json ) {
-        $self->res->code(400);
-        return $self->render( text => '' );
-    }
+sub latest {
+    my $self = shift;
+    my @logs = map {
+        { $_->get_inflated_columns }
+    } $self->log_repository->latest( $self->req->param('count') );
+    return $self->render( json => \@logs );
+}
 
-    $self->app->log->debug( Dumper $self->req->json );
-    $self->res->code(201);
-    $self->render( text => '' );
+sub today {
+    my $self = shift;
+    my @logs = map {
+        { $_->get_inflated_columns }
+    } $self->log_repository->today( $self->req->param('service_name') );
+    return $self->render( json => \@logs );
+}
+
+sub create {
+    my $self = shift;
+    my $log  = $self->log_repository->create( $self->req->json );
+    my %json = $log->get_columns;
+    $self->render( status => 201, json => \%json );
 }
 
 1;

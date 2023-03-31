@@ -16,12 +16,12 @@ our $VERSION = '0.1';
 my $c = container 'Clark' => as {
     container 'Database' => as {
         if ( $ENV{'CLARK_PRODUCTION'} ) {
-            service 'dsn' => "DBI:mysql:database='clark';host=clark_database";
+            service 'dsn' => "DBI:mysql:database=clark;host=clark_database";
         }
         else {
-            service 'dsn' => "DBI:mysql:database='clark';host=127.0.0.1";
+            service 'dsn' => "DBI:mysql:database=clark;host=127.0.0.1";
         }
-        service 'username' => $ENV{MYSQL_USER};
+        service 'username' => 'root';
         service 'password' => $ENV{MYSQL_PASS};
 
         service 'dbh' => (
@@ -44,12 +44,13 @@ sub startup ($self) {
 
     # Database boilerplate
     my $dbh = $c->resolve( service => 'Database/dbh' );
-    $self->helper( user_repository => $dbh->resultset('User') );
-    $self->helper( log_repository  => $dbh->resultset('Log') );
+    $self->helper( user_repository => sub { return $dbh->resultset('User') } );
+    $self->helper( log_repository  => sub { return $dbh->resultset('Log') } );
 
     my $log = Mojo::Log->new( level => 'trace' );
 
-    my $router = $self->routes->under(
+    my $router      = $self->routes;
+    my $csrf_router = $self->routes->under(
         '/' => sub ($c) {
             return 1 if $c->req->method ne 'POST';
 
@@ -88,15 +89,22 @@ sub startup ($self) {
     );
 
     $router->any('/')->to('clark#index')->name('clark_index');
-    $router->post('/login')->to('clark#login')->name('clark_login');
+    $csrf_router->post('/login')->to('clark#login')->name('clark_login');
     $router->any('/logout')->to('clark#logout')->name('clark_logout');
 
     $authorized_router->get('/dashboard')->to('dashboard#index')->name('dashboard');
 
     $app_authorized_router->post('/api/logs')->to('log#create')->name('create_log');
     $app_authorized_router->get('/api/logs')->to('log#find')->name('find_log');
+    $app_authorized_router->get('/api/logs/latest')->to('log#latest')->name('latest_log');
+    $app_authorized_router->get('/api/logs/today')->to('log#today')->name('today_log');
 
-    $router->get('/api/test/logs')->to('log#find')->name('TEST_DELETE_ME');
+    unless ( $ENV{'CLARK_PRODUCTION'} ) {
+        $router->get('/api/test/logs')->to('log#find')->name('TEST_DELETE_ME');
+        $router->post('/api/test/logs')->to('log#create')->name('DELETE_ME_TOO');
+        $router->get('/api/test/logs/latest')->to('log#latest')->name('DELETE_ME_THREE');
+        $router->get('/api/test/logs/today')->to('log#today')->name('DELETE_MEEEEE');
+    }
 
     $self->app->log($log);
 }

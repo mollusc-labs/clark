@@ -6,21 +6,26 @@ use DateTime;
 use Clark::Util::Crypt;
 use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components(qw/InflateColumn::DateTime Core/);
+__PACKAGE__->load_components(qw/InflateColumn::DateTime PK::Auto Core/);
 
 __PACKAGE__->table('user');
 __PACKAGE__->add_columns(
     id => {
-        data_type => 'varchar',
-        size      => 36,
-        unique    => 1
+        data_type         => 'varchar',
+        size              => 36,
+        unique            => 1,
+        is_auto_increment => 1
     },
     name => {
         data_type => 'varchar',
         size      => 50,
         unique    => 1
     },
-    qw/password is_admin last_login created_at /
+    password => {
+        data_type => 'varchar',
+        size      => 100
+    },
+    qw/is_admin last_login created_at /
 );
 __PACKAGE__->mk_group_accessors();
 __PACKAGE__->set_primary_key('id');

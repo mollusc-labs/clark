@@ -8,7 +8,7 @@ use Carp;
 
 my $salt = $ENV{'SALT'} || 'CHANGE_ME';
 
-sub hash_password {
+sub hash {
     my $pass = shift;
     return argon2id_pass( $pass, $salt, 3, '32M', 1, 16 );
 }

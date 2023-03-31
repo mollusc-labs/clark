@@ -20,6 +20,7 @@ services:
     expose:
       - '3306'
     ports: [ '3306:3306' ]
+    command: mysqld --default-authentication-plugin=mysql_native_password
     env_file:
       - .env
     restart: 'always'
@@ -28,9 +29,7 @@ services:
       - ./data:/var/lib/mysql:rw
       - ./my.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf:ro
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASS: ${MYSQL_PASS}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASS}
       MYSQL_ROOT_HOST: '%'
     networks:
       - clark_net
