@@ -22,4 +22,5 @@ CREATE TABLE IF NOT EXISTS log (
     message TEXT NOT NULL,
     created_at DATETIME DEFAULT (NOW())
 );
+
 COMMIT;

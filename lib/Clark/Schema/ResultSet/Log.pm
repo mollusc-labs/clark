@@ -24,7 +24,7 @@ sub by_params {
     }
     else { $size = 10 }
 
-    return $c->search( {}, { page => $page, rows => $size } );
+    return $c->search( \%args, { page => $page, rows => $size } );
 }
 
 sub by_service {
