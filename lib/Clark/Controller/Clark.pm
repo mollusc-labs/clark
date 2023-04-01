@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use v5.36;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
+use Data::Dumper;
 
 sub _try_login {
     my ( $self, $user, $pass ) = @_;
@@ -20,9 +21,11 @@ sub _can_attempt_login {
         return 1;
     }
 
+    $self->app->log->info( $self->session );
+
     # Can attempt to login if they have less than 3 attempts and have waited at least a minute.
     return not( ( ( $self->session('login_attempts') || 0 ) >= 3 )
-        && ( ( $last_login_attempt - time ) <= 6000 ) );
+        && ( ( $last_login_attempt - time ) <= 60000 ) );
 }
 
 sub index ($self) {
@@ -36,9 +39,9 @@ sub login ($self) {
 
     my $user = $self->req->param('name');
 
-    if ( not( $self->_can_attempt_login ) ) {
-        $self->app->log->info("Login attempt from user $user, failed due to too many attempts");
-        $self->flash( message => 'You\'ve tried to login too many times recently, try again later' );
+    if ( $self->_can_attempt_login ) {
+        $self->app->log->info("Login attempt for user $user failed due to too many attempts");
+        $self->stash( message => 'You\'ve tried to login too many times recently, try again later' );
         return $self->render( status => 400, template => 'clark/index' );
     }
 
@@ -49,12 +52,12 @@ sub login ($self) {
         && ( my $user_model = $self->_try_login( $user, $pass ) ) )
     {
         $self->app->log->info("User $user logged in successfully");
-        $self->session( user => $user_model->id );
+        $self->session( user => $user_model );
         $self->redirect_to('/dashboard');
     }
     else {
         $self->app->log->info("Invalid login attempt for user: $user");
-        $self->flash( message => 'Invalid Login' );
+        $self->stash( message => 'Invalid Login' );
         $self->render( status => 404, template => 'clark/index' );
     }
 }

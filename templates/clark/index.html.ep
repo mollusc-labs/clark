@@ -1,17 +1,17 @@
 % layout 'default';
 %= form_for 'login', method => 'POST' => begin
-  % if (my $message = flash 'message') {
+  % if (my $message = stash 'message') {
   <div>
     <%= $message %>
   </div>
   % }
   <div>
     Name<br>
-    %= text_field 'name'
+    %= text_field 'name', required => ''
   </div>
   <div>
     Password<br>
-    %= password_field 'password'
+    %= password_field 'password', required => ''
   </div>
   %= csrf_field
   %= submit_button 'login'

@@ -25,7 +25,11 @@ __PACKAGE__->add_columns(
         data_type => 'varchar',
         size      => 100
     },
-    qw/is_admin last_login created_at /
+    is_admin => {
+        data_type => 'tinyint',
+        size      => 1
+    },
+    qw/last_login created_at /
 );
 __PACKAGE__->mk_group_accessors();
 __PACKAGE__->set_primary_key('id');
