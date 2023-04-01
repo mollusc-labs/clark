@@ -7,7 +7,8 @@ use Data::Dumper;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 sub index {
-    return shift->render;
+    my $self = shift;
+    return $self->render;
 }
 
 1;

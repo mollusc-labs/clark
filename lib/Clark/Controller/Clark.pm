@@ -54,7 +54,8 @@ sub login ($self) {
 
     if ( my $user_model = $self->_try_login( $user, $pass ) ) {
         $self->app->log->info("User $user logged in successfully");
-        $user_model->last_login( DateTime->now )->update;
+        $user_model->last_login( DateTime->now );
+        $user_model->update;
         $self->session( user => $user_model->id );
         $self->redirect_to('/dashboard');
     }

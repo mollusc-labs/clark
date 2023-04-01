@@ -130,6 +130,10 @@ sub startup ($self) {
         }
     );
 
+    if ( $ENV{'CLARK_PRODUCTION'} ) {
+        push @{ $self->static->paths }, 'frontend/dist';
+    }
+
     # For routes that require an API-key
     my $app_authorized_router = $router->under(
         '/' => sub ($c) {
