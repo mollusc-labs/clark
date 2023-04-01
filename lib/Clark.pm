@@ -3,6 +3,7 @@ package Clark;
 use strict;
 use warnings;
 use experimental;
+use v5.36;
 
 use Mojo::Base 'Mojolicious', -signatures;
 use Mojo::Log;
@@ -47,6 +48,48 @@ sub startup ($self) {
     my $dbh = $c->resolve( service => 'Database/dbh' );
     $self->helper( user_repository => sub { return $dbh->resultset('User') } );
     $self->helper( log_repository  => sub { return $dbh->resultset('Log') } );
+
+    state $known_errors = {
+        400 => { err => 400, msg => 'Bad Request' },
+        503 => { err => 503, msg => 'Servince Unavailable' }
+    };
+
+    $self->hook(
+        before_render => sub {
+            my $c   = shift;
+            my $err = $c->stash('err');
+
+            return unless $err;
+
+            if ( $known_errors->{$err} ) {
+                return $c->render( status => $err, json => $known_errors->{$err} );
+            }
+            else {
+                return $c->render( status => 503, json => $known_errors->{503} );
+            }
+        }
+    );
+
+    # Session validity and keeping track of user
+    $self->hook(
+        around_dispatch => sub {
+            my $next = shift;
+            my $c    = shift;
+            $c->session( ip => $c->tx->original_remote_address ) unless $c->session('ip');
+            if ( $c->session('ip') ne $c->tx->original_remote_address ) {
+                $c->session( expires => 1 );
+            }
+            else {
+                if ( my $uid = $c->session('user') ) {
+                    my %user = $dbh->resultset('User')->find( { id => $uid } )->get_columns;
+                    delete %user{'password'};
+                    $c->stash( user => \%user );
+                }
+            }
+
+            $next->();
+        }
+    );
 
     # Make sure there's always at least one user.
     unless ( scalar $self->user_repository->search->all ) {

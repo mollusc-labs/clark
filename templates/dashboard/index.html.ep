@@ -1,6 +1,6 @@
 % layout 'default';
-<div>
-    <%= session 'user' %>
-</div>
+% use Mojo::JSON qw(encode_json);
+% my $user = encode_json(stash 'user');
+<input type="hidden" id="user" value="<%= $user %>"/>
 <h1>You will see logs here</h1>
 <p>This will be your dash board</p>

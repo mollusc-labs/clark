@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use v5.36;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
-use Data::Dumper;
+use DateTime;
 
 sub _try_login {
     my ( $self, $user, $pass ) = @_;
@@ -15,17 +15,13 @@ sub _can_attempt_login {
     my $self = shift;
 
     my $last_login_attempt = $self->session('last_login_attempt') || time;
+    my $login_attempts     = $self->session('login_attempts');
 
-    if ( time - $last_login_attempt >= 60000 ) {
-        $self->session( login_attempts => 0 );
-        return 1;
+    if ( ( ( time - $last_login_attempt ) <= 60 ) && $login_attempts >= 3 ) {
+        return 0;
     }
 
-    $self->app->log->info( $self->session );
-
-    # Can attempt to login if they have less than 3 attempts and have waited at least a minute.
-    return not( ( ( $self->session('login_attempts') || 0 ) >= 3 )
-        && ( ( $last_login_attempt - time ) <= 60000 ) );
+    return 1;
 }
 
 sub index ($self) {
@@ -34,28 +30,36 @@ sub index ($self) {
 }
 
 sub login ($self) {
-    $self->session( login_attempts     => ( $self->session('login_attempts') || 0 ) + 1 );
-    $self->session( last_login_attempt => localtime );
+    $self->redirect_to('/dashboard') if ( $self->session('user') );
+
+    $self->session( login_attempts => ( $self->session('login_attempts') || 0 ) + 1 );
+
+    my $v = $self->validation;
+
+    $v->required('name')->size( 1, 100 );
+    $v->required('password')->size( 1, ~0 );
+    return $self->stash( err => 400 ) unless $v->has_data && ( not $v->has_error );
 
     my $user = $self->req->param('name');
-
-    if ( $self->_can_attempt_login ) {
-        $self->app->log->info("Login attempt for user $user failed due to too many attempts");
-        $self->stash( message => 'You\'ve tried to login too many times recently, try again later' );
-        return $self->render( status => 400, template => 'clark/index' );
-    }
-
     my $pass = $self->req->param('password');
 
-    if (   $user
-        && $pass
-        && ( my $user_model = $self->_try_login( $user, $pass ) ) )
-    {
+    if ( not( $self->_can_attempt_login ) ) {
+        $self->session( last_login_attempt => time );
+        $self->app->log->info("Login attempt for user $user failed due to too many attempts");
+        $self->stash( message => 'You\'ve tried to login too many times recently, try again later' );
+        return $self->render( status => 429, template => 'clark/index' );
+    }
+
+    $self->session( login_attempts => 1 ) if $self->session('login_attempts') >= 3;
+
+    if ( my $user_model = $self->_try_login( $user, $pass ) ) {
         $self->app->log->info("User $user logged in successfully");
-        $self->session( user => $user_model );
+        $user_model->last_login( DateTime->now )->update;
+        $self->session( user => $user_model->id );
         $self->redirect_to('/dashboard');
     }
     else {
+        $self->session( last_login_attempt => time );
         $self->app->log->info("Invalid login attempt for user: $user");
         $self->stash( message => 'Invalid Login' );
         $self->render( status => 404, template => 'clark/index' );
