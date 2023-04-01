@@ -1,4 +1,4 @@
-package Clark::Controller::Log;
+package Clark::Controller::User;
 
 use strict;
 use warnings;
@@ -32,5 +32,9 @@ sub update_user {
         return $self->render( status => 400, json => { err => 400, msg => 'Invalid password.' } );
     }
 
+    $user->username($username)->update;
+
     return $self->render( status => 204 );
 }
+
+1;

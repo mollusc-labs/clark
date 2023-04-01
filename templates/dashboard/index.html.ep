@@ -1,3 +1,6 @@
 % layout 'default';
+<div>
+    <%= session 'user' %>
+</div>
 <h1>You will see logs here</h1>
 <p>This will be your dash board</p>

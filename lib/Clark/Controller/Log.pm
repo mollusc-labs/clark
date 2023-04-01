@@ -5,29 +5,23 @@ use warnings;
 use experimental qw(signatures);
 use Mojo::Util   qw(secure_compare);
 use Mojo::Base 'Mojolicious::Controller', -signatures;
-use Data::Dumper;
+use Clark::Util::Inflate;
 
 sub find {
     my $self = shift;
-    my @logs = map {
-        { $_->get_inflated_columns }
-    } $self->log_repository->by_params( %{ $self->req->params->to_hash } );
+    my @logs = Clark::Util::Inflate->many( $self->log_repository->by_params( %{ $self->req->params->to_hash } ) );
     return $self->render( json => \@logs );
 }
 
 sub latest {
     my $self = shift;
-    my @logs = map {
-        { $_->get_inflated_columns }
-    } $self->log_repository->latest( $self->req->param('count') );
+    my @logs = Clark::Util::Inflate->many( $self->log_repository->latest( $self->req->param('count') ) );
     return $self->render( json => \@logs );
 }
 
 sub today {
     my $self = shift;
-    my @logs = map {
-        { $_->get_inflated_columns }
-    } $self->log_repository->today( $self->req->param('service_name') );
+    my @logs = Clark::Util::Inflate->many( $self->log_repository->today( $self->req->param('service_name') ) );
     return $self->render( json => \@logs );
 }
 

@@ -30,11 +30,4 @@ __PACKAGE__->add_columns(
 __PACKAGE__->mk_group_accessors();
 __PACKAGE__->set_primary_key('id');
 
-sub inflate_result {
-    my $self = shift;
-    my $ret  = next::method(@_);
-    delete $ret->{'password'};
-    return $ret;
-}
-
 1;

@@ -9,6 +9,7 @@ use Mojo::Log;
 use Mojolicious::Validator::Validation;
 use Carp q<croak>;
 use Bread::Board;
+use Clark::Util::Crypt;
 
 our $VERSION = '0.1';
 
@@ -47,17 +48,27 @@ sub startup ($self) {
     $self->helper( user_repository => sub { return $dbh->resultset('User') } );
     $self->helper( log_repository  => sub { return $dbh->resultset('Log') } );
 
+    # Make sure there's always at least one user.
+    unless ( scalar $self->user_repository->search->all ) {
+        my $user = {
+            name     => $ENV{'CLARK_USER'} || 'clark',
+            password => Clark::Util::Crypt->hash( $ENV{'CLARK_PASS'} || 'clark' ),
+            is_admin => "b'1'"
+        };
+
+        $self->user_repository->new_result($user)->insert;
+    }
+
     my $log = Mojo::Log->new( level => 'trace' );
 
-    my $router      = $self->routes;
+    my $router      = $self->routes->namespaces( ['Clark::Controller'] );
     my $csrf_router = $self->routes->under(
         '/' => sub ($c) {
             return 1 if $c->req->method ne 'POST';
 
             my $v = $c->validation;
             if ( $v->csrf_protect->has_error('csrf_token') ) {
-                say 'error';
-                $c->render( text => '', status => 400 );
+                $c->render( json => { err => 400, msg => 'Invalid csrf token' }, status => 400 );
                 return undef;
             }
             return 1;
@@ -88,12 +99,20 @@ sub startup ($self) {
         }
     );
 
+    # Clark routes
     $router->any('/')->to('clark#index')->name('clark_index');
     $csrf_router->post('/login')->to('clark#login')->name('clark_login');
     $router->any('/logout')->to('clark#logout')->name('clark_logout');
 
-    $authorized_router->get('/dashboard')->to('dashboard#index')->name('dashboard');
+    # User routes
+    $authorized_router->post('/change-password')->to('clark#change_password')->name('clark_change_password');
+    $authorized_router->post('/update-user')->to('clark#update_user')->name('clark_update_user');
 
+    # Dashboard routes
+    $authorized_router->get('/dashboard')->to('dashboard#index')->name('dashboard_index');
+
+    # Api routes
+    ## Log routes
     $app_authorized_router->post('/api/logs')->to('log#create')->name('create_log');
     $app_authorized_router->get('/api/logs')->to('log#find')->name('find_log');
     $app_authorized_router->get('/api/logs/latest')->to('log#latest')->name('latest_log');

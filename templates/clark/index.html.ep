@@ -1,6 +1,6 @@
 % layout 'default';
 %= form_for 'login', method => 'POST' => begin
-  % if (my $message = stash 'message') {
+  % if (my $message = flash 'message') {
   <div>
     <%= $message %>
   </div>
