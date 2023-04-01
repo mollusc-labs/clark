@@ -9,8 +9,8 @@ USE clark;
 CREATE TABLE IF NOT EXISTS user (
     id VARCHAR(36) DEFAULT (UUID()) PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(100) NOT NULL,
-    is_admin BIT DEFAULT 0,
+    password TEXT NOT NULL,
+    is_admin TINYINT(1) DEFAULT 0,
     last_login DATETIME,
     created_at DATETIME DEFAULT NOW()
 );

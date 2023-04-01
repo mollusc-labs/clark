@@ -53,7 +53,7 @@ sub startup ($self) {
         my $user = {
             name     => $ENV{'CLARK_USER'} || 'clark',
             password => Clark::Util::Crypt->hash( $ENV{'CLARK_PASS'} || 'clark' ),
-            is_admin => "b'1'"
+            is_admin => 1
         };
 
         $self->user_repository->new_result($user)->insert;
