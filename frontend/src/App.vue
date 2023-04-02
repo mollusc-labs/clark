@@ -1,20 +1,25 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, reactive } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
 
+const user = reactive({
+  name: 'unknown'
+});
+
 onMounted(() => {
   document.querySelector('.logo')?.setAttribute('src', '/assets/logo.svg');
+  let user_elem = document.querySelector('#user')?.getAttribute('value');
+  user.name = JSON.parse(user_elem as string).name;
+  console.log(JSON.parse(user_elem as string));
 });
 </script>
 
 <template>
   <header>
     <img alt="Vue logo" class="logo" width="125" height="125" />
-
     <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
+      <HelloWorld :msg="user.name" />
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
