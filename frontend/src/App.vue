@@ -3,14 +3,15 @@ import { onMounted } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
 import { user } from './lib/store'
 import HelloWorld from './components/HelloWorld.vue'
+import router from './router';
 
 onMounted(() => {
-  document.querySelector('.logo')?.setAttribute('src', '/assets/logo.svg');
-  let user_name = document.querySelector('#user')?.getAttribute('value');
+  document.querySelector('.logo')?.setAttribute('src', '/assets/logo.svg')
+  let user_name = document.querySelector('#user')?.getAttribute('value')
   if (!user_name) {
-
+    window.location.replace('/');
   } else {
-    user.name = JSON.parse(user_name).name;
+    user.name = JSON.parse(user_name).name
   }
 });
 
