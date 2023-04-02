@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue';
+import { onMounted } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
+import { user } from './lib/store'
 import HelloWorld from './components/HelloWorld.vue'
-
-const user = reactive({
-  name: 'unknown'
-});
 
 onMounted(() => {
   document.querySelector('.logo')?.setAttribute('src', '/assets/logo.svg');
@@ -13,6 +10,7 @@ onMounted(() => {
   user.name = JSON.parse(user_elem as string).name;
   console.log(JSON.parse(user_elem as string));
 });
+
 </script>
 
 <template>
