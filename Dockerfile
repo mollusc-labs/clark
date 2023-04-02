@@ -2,10 +2,19 @@ FROM perl:latest AS build
 RUN apt-get install -y default-libmysqlclient-dev
 RUN cpan Mojolicious Bread::Board DBI DBD::mysql DBIx::Class Crypt::Argon2 DateTime
 
-FROM build AS clark
-RUN sleep 1
+FROM node:latest
+WORKDIR /clark/frontend
+COPY ./frontend .
+VOLUME public
+RUN yarn && yarn build
+
+FROM build AS run
 EXPOSE 3000
 WORKDIR /clark
-COPY . .
+COPY lib ./lib
+COPY templates ./templates
+COPY public ./public
+COPY clark.pl .
 # Prefork will run in multiple threads, daemon runs on a single thread, adjust wisely.
+RUN ls
 CMD ["perl", "clark.pl", "prefork", "-m", "production"]

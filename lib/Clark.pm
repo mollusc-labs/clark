@@ -40,7 +40,7 @@ my $c = container 'Clark' => as {
 
 no Bread::Board;
 
-my $api_key = $ENV{'CLARK_API_KEY'};
+my $api_key = $ENV{'CLARK_API_KEY'} || croak 'You need to set the "CLARK_API_KEY" environment variable. See QUICKSTART to get started.';
 
 sub startup ($self) {
 
@@ -83,7 +83,8 @@ sub startup ($self) {
                 if ( my $uid = $c->session('user') ) {
                     my %user = $dbh->resultset('User')->find( { id => $uid } )->get_columns;
                     delete %user{'password'};
-                    $c->stash( user => \%user );
+                    $c->stash( user    => \%user );
+                    $c->stash( api_key => $api_key );
                 }
             }
 
