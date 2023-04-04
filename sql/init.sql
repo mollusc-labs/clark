@@ -25,13 +25,14 @@ CREATE TABLE IF NOT EXISTS log (
 
 CREATE TABLE IF NOT EXISTS api_key (
     id VARCHAR(36) DEFAULT (UUID()) PRIMARY KEY,
-    key VARCHAR(100) UNIQUE NOT NULL,
+    key TEXT UNIQUE NOT NULL,
     is_active TINYINT(1) DEFAULT 1,
     matcher VARCHAR(100) NOT NULL,
     created_by VARCHAR(36) NOT NULL,
     created_at DATETIME DEFAULT NOW(),
     inactive_since DATETIME,
-    CONSTRAINT created_by_fk FOREIGN KEY (created_by) REFERENCES user(id)
+    CONSTRAINT created_by_fk FOREIGN KEY (created_by) REFERENCES user(id),
+    INDEX (key)
 );
 
 COMMIT;

@@ -14,7 +14,7 @@ sub index {
 #| This is for the vue dev server
 sub dev {
     my $self = shift;
-    return $self->redirect_to('http://localhost:8080/dashboard');
+    return $self->redirect_to('http://localhost:5173/dashboard');
 }
 
 1;

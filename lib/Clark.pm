@@ -11,6 +11,7 @@ use Mojolicious::Validator::Validation;
 use Carp q<croak>;
 use Bread::Board;
 use Clark::Util::Crypt;
+use Crypt::JWT qw(decode_jwt);
 
 our $VERSION = '0.1';
 
@@ -48,6 +49,7 @@ sub startup ($self) {
     my $dbh = $c->resolve( service => 'Database/dbh' );
     $self->helper( user_repository => sub { return $dbh->resultset('User') } );
     $self->helper( log_repository  => sub { return $dbh->resultset('Log') } );
+    $self->helper( key_repository  => sub { return $dbh->resultset('Key') } );
 
     state $known_errors = {
         400 => { err => 400, msg => 'Bad Request' },
@@ -81,10 +83,12 @@ sub startup ($self) {
             }
             else {
                 if ( my $uid = $c->session('user') ) {
-                    my %user = $dbh->resultset('User')->find( { id => $uid } )->get_columns;
-                    delete %user{'password'};
-                    $c->stash( user    => \%user );
-                    $c->stash( api_key => $api_key );
+                    if ( my $user = $dbh->resultset('User')->find( { id => $uid } ) ) {
+                        my %user = $user->get_columns;
+                        delete %user{'password'};
+                        $c->stash( user    => \%user );
+                        $c->stash( api_key => $api_key );
+                    }
                 }
             }
 
@@ -145,11 +149,13 @@ sub startup ($self) {
     my $app_authorized_router = $router->under(
         '/' => sub ($c) {
             my $req_api_key = split /\s/, $c->req->headers->to_hash->{'X-CLARK'};
-            unless ($req_api_key) {
-                $c->redirect_to('/');
+            eval { decode_jwt($req_api_key); };
+            unless ( $req_api_key && not($@) ) {
+                $c->render( json => { err => 403, msg => 'Unauthorized' }, status => 403 );
                 return undef;
             }
-            return $req_api_key eq $api_key;
+
+            return defined $c->key_repository->by_key($req_api_key);
         }
     );
 
@@ -176,12 +182,14 @@ sub startup ($self) {
     $app_authorized_router->get('/api/logs')->to('log#find')->name('find_log');
     $app_authorized_router->get('/api/logs/latest')->to('log#latest')->name('latest_log');
     $app_authorized_router->get('/api/logs/today')->to('log#today')->name('today_log');
+    $app_authorized_router->post('/api/keys')->to('key#create')->name('create_key');
 
     unless ( $ENV{'CLARK_PRODUCTION'} ) {
         $router->get('/api/test/logs')->to('log#find')->name('TEST_DELETE_ME');
         $router->post('/api/test/logs')->to('log#create')->name('DELETE_ME_TOO');
         $router->get('/api/test/logs/latest')->to('log#latest')->name('DELETE_ME_THREE');
         $router->get('/api/test/logs/today')->to('log#today')->name('DELETE_MEEEEE');
+        $router->post('/api/test/keys')->to('key#create')->name('DELETEEE_THIS');
     }
 
     $self->app->log($log);

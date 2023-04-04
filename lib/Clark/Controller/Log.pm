@@ -27,8 +27,10 @@ sub today {
 
 sub create {
     my $self = shift;
-    my $log  = $self->log_repository->create( $self->req->json );
+    my $log  = $self->log_repository->create( $self->req->json )
+        || return $self->render( status => 400, json => { err => 400, msg => 'Invalid JSON for logging' } );
     my %json = $log->get_columns;
+    delete $json{'id'};
     $self->render( status => 201, json => \%json );
 }
 

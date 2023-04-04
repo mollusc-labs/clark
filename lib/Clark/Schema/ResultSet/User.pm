@@ -8,14 +8,19 @@ use Clark::Util::Crypt;
 use strict;
 use warnings;
 
-sub active {
+sub cut {
     my $self = shift;
-    return $self->search( { is_active => 1 } );
+    return $self->search( { columns => \qw(name password is_admin) } );
 }
 
 sub by_name_and_pass {
     my ( $self, $name, $pass ) = @_;
-    return $self->active->find( { name => $name, password => Clark::Util::Crypt->hash($pass) } ) || undef;
+    return $self->find( { name => $name, password => Clark::Util::Crypt->hash($pass) } ) || undef;
+}
+
+sub delete {
+    my ( $self, $uid ) = @_;
+    return $self->delete( { id => $uid } );
 }
 
 1;
