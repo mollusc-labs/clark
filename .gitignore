@@ -4,3 +4,5 @@ data/
 *.ERR
 *.log
 public/
+*.out
+certs

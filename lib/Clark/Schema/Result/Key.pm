@@ -15,7 +15,7 @@ __PACKAGE__->add_columns(
         unique            => 1,
         is_auto_increment => 1
     },
-    key => {
+    value => {
         data_type => 'varchar',
         size      => 100,
         unique    => 1,

@@ -18,21 +18,23 @@ CREATE TABLE IF NOT EXISTS user (
 CREATE TABLE IF NOT EXISTS log (
     id VARCHAR(36) DEFAULT (UUID()) PRIMARY KEY,
     service_name VARCHAR(100) NOT NULL,
-    severity VARCHAR(50) NOT NULL,
+    hostname VARCHAR(100) NOT NULL,
+    severity INTEGER NOT NULL,
+    process_id VARCHAR(50) NOT NULL,
     message TEXT NOT NULL,
     created_at DATETIME DEFAULT (NOW())
 );
 
 CREATE TABLE IF NOT EXISTS api_key (
     id VARCHAR(36) DEFAULT (UUID()) PRIMARY KEY,
-    key TEXT UNIQUE NOT NULL,
+    value VARCHAR(36) UNIQUE NOT NULL,
     is_active TINYINT(1) DEFAULT 1,
     matcher VARCHAR(100) NOT NULL,
     created_by VARCHAR(36) NOT NULL,
     created_at DATETIME DEFAULT NOW(),
     inactive_since DATETIME,
     CONSTRAINT created_by_fk FOREIGN KEY (created_by) REFERENCES user(id),
-    INDEX (key)
+    INDEX (value)
 );
 
 COMMIT;

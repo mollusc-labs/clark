@@ -5,10 +5,11 @@ use strict;
 use warnings;
 use v5.36;
 
-sub many (@columns) {
-    return \map( {
+sub many {
+    shift;
+    return map( {
             { $_->get_inflated_columns }
-    } @columns );
+    } @_ );
 }
 
 1;

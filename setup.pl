@@ -14,10 +14,15 @@ print "Welcome to the clark environment setup script.\n\n";
 print "Please provide the following information.\n\n";
 $env{'MYSQL_PASS'} = prompt 'Database password:', -echo => '*';
 sleep 1;
+print "\nWill your database be hosted locally? If not please provide the hostname. (Leave empty for localhost)\n\n";
+$env{'MYSQL_HOST'} = prompt 'Database host: ';
+$env{'MYSQL_HOST'} = '127.0.0.1' unless $env{'MYSQL_HOST'} ne "";
+sleep 1;
 
 print "\nPlease input the credentials you wish to use for the default clark account (you can change these later).\n\n";
 $env{'CLARK_USER'} = prompt 'Username:';
 $env{'CLARK_PASS'} = prompt 'Password:', -echo => '*';
+
 sleep 1;
 
 print "\nGenerating secure salt\n";
@@ -33,5 +38,8 @@ chomp($str);
 print $fh "$str";
 close $fh;
 
-print "\nFinished setting up clark environment. Please review the .env file that was generated.\n";
-print "NOTE: The CLARK_API_KEY is your MASTER key, meaning it is used to generate more keys, please keep it safe.\n\n";
+system qq(sudo ./rsyslog.sh);
+
+print "\nFinished setting up clark environment. Please review the .env file that was generated.\n\n";
+print "NOTE: The CLARK_API_KEY is your MASTER key, meaning it is used to generate more keys, please keep it safe.\n";
+print "NOTE: Clark has made changes to your rsyslog setup, make sure to securely review them.\n\n"

@@ -9,7 +9,7 @@ use warnings;
 use v5.10;    # for state
 
 sub by_params {
-    my $c    = shift;
+    my $self = shift;
     my %args = @_;
     my $size = $args{'size'};
     my $page = $args{'page'};
@@ -22,18 +22,18 @@ sub by_params {
         delete $args{'size'};
     }
 
-    return $c->search( \%args, { page => $page || 1, rows => $size || 10 } );
+    return $self->latest->search( \%args, { page => $page || 1, rows => $size || 10 } );
 }
 
 sub by_service {
-    my $c    = shift;
+    my $self = shift;
     my $page = shift;
     my $size = shift;
     my $name = pop;
 
     $page = 1  unless looks_like_number $size;
     $size = 10 unless looks_like_number $size;
-    return $c->search(
+    return $self->search(
         { service_name => $name },
         {   page => $page,
             rows => $size
@@ -42,23 +42,23 @@ sub by_service {
 }
 
 sub from_date {
-    my $c    = shift;
+    my $self = shift;
     my $from = shift || DateTime->epoch( epoch => 0 );
     my $to   = shift || DateTime->now;
 
-    return $c->search( { created_at => { -between => [ $from, $to ] } } );
+    return $self->search( { created_at => { -between => [ $from, $to ] } } );
 }
 
 sub by_severity {
-    return shift->search( { severity => { LIKE => pop } } );
+    return shift->search( { severity => pop } );
 }
 
 sub latest {
-    my $c    = shift;
+    my $self = shift;
     my $rows = pop;
     $rows = 20 unless looks_like_number $rows;
 
-    return $c->search( {}, { order_by => { -desc => 'created_at' }, rows => $rows } );
+    return $self->search( {}, { order_by => { -desc => 'created_at' }, rows => $rows } );
 }
 
 sub today {
