@@ -1,7 +1,7 @@
 FROM perl:latest AS build
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y default-libmysqlclient-dev
-RUN cpan Mojolicious Bread::Board DBI DBD::mysql DBIx::Class Crypt::Argon2 DateTime
+RUN cpan Mojolicious Bread::Board DBI DBD::mysql DBIx::Class Crypt::Argon2 DateTime Crypt::JWT
 
 FROM build AS frontend
 # Install latest Node LTS

@@ -18,13 +18,19 @@ __PACKAGE__->add_columns(
     key => {
         data_type => 'varchar',
         size      => 100,
-        unique    => 1
+        unique    => 1,
+        not_null  => 1
     },
     matcher => {
         data_type => 'varchar',
-        size      => 100
+        size      => 100,
+        not_null  => 1
     },
-    qw/ is_active /
+    created_by => {
+        data_type => 'varchar',
+        size      => 36
+    },
+    qw/ is_active created_at inactive_since /
 );
 __PACKAGE__->set_primary_key('id');
 
