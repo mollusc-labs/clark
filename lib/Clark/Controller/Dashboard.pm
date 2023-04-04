@@ -11,4 +11,10 @@ sub index {
     return $self->render;
 }
 
+#| This is for the vue dev server
+sub dev {
+    my $self = shift;
+    return $self->redirect_to('http://localhost:8080/dashboard');
+}
+
 1;

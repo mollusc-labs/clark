@@ -24,7 +24,7 @@ __PACKAGE__->add_columns(
         data_type => 'varchar',
         size      => 100
     },
-    qw/ is_active matcher /
+    qw/ is_active /
 );
 __PACKAGE__->set_primary_key('id');
 

@@ -15,7 +15,7 @@ __PACKAGE__->add_columns(
         unique            => 1,
         is_auto_increment => 1
     },
-    qw/service_name severity message created_at /
+    qw/service_name severity message created_at/
 );
 __PACKAGE__->set_primary_key('id');
 

@@ -131,9 +131,15 @@ sub startup ($self) {
         }
     );
 
-    if ( $ENV{'CLARK_PRODUCTION'} ) {
-        push @{ $self->static->paths }, 'frontend/dist';
-    }
+    my $admin_authorized_router = $authorized_router->under(
+        '/' => sub ($c) {
+            unless ( $c->stash('user')->is_admin ) {
+                $c->render( status => 403, json => { err => 403, msg => 'Unauthorized' } );
+                return undef;
+            }
+            return 1;
+        }
+    );
 
     # For routes that require an API-key
     my $app_authorized_router = $router->under(
@@ -157,7 +163,12 @@ sub startup ($self) {
     $authorized_router->post('/update-user')->to('clark#update_user')->name('clark_update_user');
 
     # Dashboard routes
-    $authorized_router->get('/dashboard')->to('dashboard#index')->name('dashboard_index');
+    if ( $ENV{'CLARK_PRODUCTION'} ) {
+        $authorized_router->get('/dashboard')->to('dashboard#index')->name('dashboard_index');
+    }
+    else {
+        $authorized_router->get('/dashboard')->to('dashboard#dev')->name('dashboard_dev');
+    }
 
     # Api routes
     ## Log routes

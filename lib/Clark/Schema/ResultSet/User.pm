@@ -8,9 +8,14 @@ use Clark::Util::Crypt;
 use strict;
 use warnings;
 
+sub active {
+    my $self = shift;
+    return $self->search( { is_active => 1 } );
+}
+
 sub by_name_and_pass {
     my ( $self, $name, $pass ) = @_;
-    return $self->find( { name => $name, password => Clark::Util::Crypt->hash($pass) } ) || undef;
+    return $self->active->find( { name => $name, password => Clark::Util::Crypt->hash($pass) } ) || undef;
 }
 
 1;
