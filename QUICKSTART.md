@@ -15,21 +15,20 @@
 6. Generate an API key on `/dashboard/api-keys`, and share it with your services!
 7. Happy logging.
 
-## Getting logs from other machines/over-the-wire
+## Getting logs from other processes
 
 ### Option 1: Syslog
-To make sure syslog is properly setup, make sure to run the `rsyslog.sh` script at the root of the project. You'll most likely have to `sudo`.
-
-Then on your remote machines add the following to configure Rsyslog by editing your `/etc/rsyslog.d/remote.conf` 
-file (you may have to create this):
-
-```
-*.*
-```
+To make sure syslog is properly setup, make sure to run the `rsyslog.sh` script at the root of the project.
 
 #### Getting logs from containers
 Make sure you setup your containers to use `syslog` as the logging driver, this can be
 done by following the guide on Docker's website, [click here](https://docs.docker.com/config/containers/logging/syslog/) for more information.
+
+TLDR run your containers with the following flags, make sure to replace `<container-name>` and `<clark-hostname>` with values that makesense,
+if you're running clark locally, then your `<clark-hostname>` will be `localhost`.
+```
+docker run --name <container-name> --log-driver syslog --log-opt tag="{{.Name}}" --log-opt syslog-address=udp://<clark-hostname>:514
+```
 
 Make sure you point the logging end-point to the server at-which you host your clark instance.
 
@@ -37,10 +36,9 @@ Make sure you point the logging end-point to the server at-which you host your c
 This is a less reliable alternative to using syslog, you'll have to generate a REST
 API key from your Clark dashboard to make logging requests. The logging REST API lives
 on `/api/logs` and you can create a new log by POSTing data in the following format:
-
 ```json
 {
-    "severity": "warn",
+    "severity": 1,
     "service_name": "foo-service",
     "message": "foo bar"
 }

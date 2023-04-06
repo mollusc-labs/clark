@@ -22,7 +22,13 @@ sub by_params {
         delete $args{'size'};
     }
 
-    return $self->latest->search( \%args, { page => $page || 1, rows => $size || 10 } );
+    return $self->latest($size)->search(
+        \%args || {},
+        {   page => $page || 1,
+            rows => $size || 10,
+            { order_by => { -desc => 'created_at' } }
+        }
+    );
 }
 
 sub by_service {
@@ -46,11 +52,11 @@ sub from_date {
     my $from = shift || DateTime->epoch( epoch => 0 );
     my $to   = shift || DateTime->now;
 
-    return $self->search( { created_at => { -between => [ $from, $to ] } } );
+    return $self->search( { created_at => { -between => [ $from, $to ] } }, { order_by => { -desc => 'created_at' } } );
 }
 
 sub by_severity {
-    return shift->search( { severity => pop } );
+    return shift->search( { severity => pop }, { order_by => { -desc => 'created_at' } } );
 }
 
 sub latest {
@@ -66,7 +72,7 @@ sub today {
     my $c            = shift;
     my $service_name = pop;
 
-    $c->from_date( DateTime->from_epoch( epoch => ( time - $delta ) ) )->search( { service_name => $service_name } );
+    $c->from_date( DateTime->from_epoch( epoch => ( time - $delta ) ) )->search( { service_name => $service_name }, { order_by => { -desc => 'created_at ' } } );
 }
 
 1;
