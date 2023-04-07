@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
-import { user } from './lib/store'
+import { user } from './lib/util/store'
 
 onMounted(() => {
   document.querySelector('.logo')?.setAttribute('src', '/assets/logo.svg')

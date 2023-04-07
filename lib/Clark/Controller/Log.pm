@@ -36,7 +36,8 @@ sub latest_ws {
             }
 
             my $date = DateTime->from_epoch( epoch => $req->{'date'} ) || return;
-            $c->send( encode_json( Clark::Util::Inflate->many( $self->log_repository->from_date($date) ) ) );
+            my @logs = Clark::Util::Inflate->many( $self->log_repository->from_date($date) );
+            $c->send( encode_json( \@logs ) );
         }
     );
 }

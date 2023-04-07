@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted, reactive } from 'vue'
-import { latestLogWebSocket } from '@/lib/webSocket'
-import { time } from '@/lib/time'
+import { latestLogWebSocket } from '@/lib/util/webSocket.js'
+import { time } from '@/lib/util/time.js'
 
 const state = reactive({
   matcher: "",
-  result: "",
+  logs: "",
   latestLogDate: time()
 })
 
@@ -15,14 +15,14 @@ const request = () => {
       return res.json();
     })
     .then(json => {
-      state.result = JSON.stringify(json);
+      state.logs = JSON.stringify(json);
     })
-    .catch(() => state.result = 'It went wrong')
+    .catch(() => state.logs = 'It went wrong')
 }
 
 onMounted(() => {
   latestLogWebSocket.addEventListener('message', (message) => {
-    state.result = message.data
+    state.logs = message.data
   })
 
   setInterval(() => {
@@ -37,7 +37,7 @@ onMounted(() => {
     <input type="text" v-model="state.matcher" />
     <button class="btn" @click="() => request()">Fire away</button>
     <div class="text-white">
-      {{ state.result }}
+      {{ state.logs }}
     </div>
   </main>
 </template>

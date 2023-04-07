@@ -51,10 +51,19 @@ sub by_service {
 sub from_date {
     my $self = shift;
     my $from = shift || DateTime->epoch( epoch => 0 );
-    my $to   = pop   || DateTime->now;
+    my $to   = shift || DateTime->now;
+    my $rows = pop;
 
+    $rows = 20 unless looks_like_number $rows;
+
+    # Need to inflate date-times for searching, using datetime_parser
     my $dtf = $self->result_source->storage->datetime_parser;
-    return $self->search( { created_at => { -between => [ $dtf->format_datetime($from), $dtf->format_datetime($to) ] } }, { order_by => { -desc => 'created_at' } } );
+    return $self->search(
+        { created_at => { -between => [ $dtf->format_datetime($from), $dtf->format_datetime($to) ] } },
+        {   order_by => { -desc => 'created_at' },
+            rows     => $rows
+        }
+    );
 }
 
 sub by_severity {
@@ -66,15 +75,28 @@ sub latest {
     my $rows = pop;
     $rows = 20 unless looks_like_number $rows;
 
-    return $self->search( {}, { order_by => { -desc => 'created_at' }, rows => $rows } );
+    return $self->search(
+        {},
+        {   order_by => { -desc => 'created_at' },
+            rows     => $rows
+        }
+    );
 }
 
 sub today {
     state $delta = 24 * 60 * 60 * 1000;
     my $c            = shift;
-    my $service_name = pop;
+    my $service_name = shift;
+    my $rows         = shift;
 
-    $c->from_date( DateTime->from_epoch( epoch => ( time - $delta ) ) )->search( { service_name => $service_name }, { order_by => { -desc => 'created_at ' } } );
+    $rows = 20 unless looks_like_number $rows;
+
+    $c->from_date( DateTime->from_epoch( epoch => ( time - $delta ) ) )->search(
+        { service_name => $service_name },
+        {   order_by => { -desc => 'created_at ' },
+            rows     => $rows
+        }
+    );
 }
 
 1;
