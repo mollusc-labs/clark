@@ -7,6 +7,7 @@ use Data::Dumper;
 use strict;
 use warnings;
 use v5.10;    # for state
+use Clark::Schema;
 
 sub by_params {
     my $self = shift;
@@ -50,9 +51,10 @@ sub by_service {
 sub from_date {
     my $self = shift;
     my $from = shift || DateTime->epoch( epoch => 0 );
-    my $to   = shift || DateTime->now;
+    my $to   = pop   || DateTime->now;
 
-    return $self->search( { created_at => { -between => [ $from, $to ] } }, { order_by => { -desc => 'created_at' } } );
+    my $dtf = $self->result_source->storage->datetime_parser;
+    return $self->search( { created_at => { -between => [ $dtf->format_datetime($from), $dtf->format_datetime($to) ] } }, { order_by => { -desc => 'created_at' } } );
 }
 
 sub by_severity {

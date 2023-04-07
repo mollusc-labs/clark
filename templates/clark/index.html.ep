@@ -1,13 +1,13 @@
-% layout 'default';
+% layout 'default'; 
 %= form_for 'login', method => 'POST' => begin
-  % if (my $message = stash 'message') {
+  % if (my $error = stash 'error') {
   <div>
-    <%= $message %>
+    <%= $error %>
   </div>
   % }
   <div>
     Name<br>
-    %= text_field 'name', required => ''
+    %= text_field 'name', class => '', required => ''
   </div>
   <div>
     Password<br>

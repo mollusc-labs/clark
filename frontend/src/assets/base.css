@@ -1,4 +1,7 @@
-/* color palette from <https://github.com/vuejs/theme> */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --vt-c-white: #ffffff;
   --vt-c-white-soft: #f8f8f8;
@@ -71,4 +74,13 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom tailwind classes */
+.btn {
+  @apply bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center;
+}
+
+.btn:hover {
+  @apply bg-gray-400;
 }

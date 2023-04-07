@@ -57,6 +57,7 @@ sub login ($self) {
         $user_model->last_login( DateTime->now );
         $user_model->update;
         $self->session( user => $user_model->id );
+        $self->session( ip   => $self->tx->original_remote_address );
         $self->redirect_to('/dashboard');
     }
     else {

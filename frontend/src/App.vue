@@ -9,7 +9,7 @@ onMounted(() => {
   if (!user_name && import.meta.env.PROD) {
     window.location.replace('/');
   } else {
-    user.name = JSON.parse(user_name || 'Unknown').name
+    user.name = JSON.parse(user_name || '{ "name": "Unknown" }').name
   }
 });
 

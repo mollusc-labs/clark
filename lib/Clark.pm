@@ -50,6 +50,7 @@ sub startup ($self) {
     $self->helper( user_repository => sub { return $dbh->resultset('User') } );
     $self->helper( log_repository  => sub { return $dbh->resultset('Log') } );
     $self->helper( key_repository  => sub { return $dbh->resultset('Key') } );
+    $self->helper( datetime_parser => sub { return $dbh->storage->datetime_parser } );
 
     state $known_errors = {
         400 => { err => 400, msg => 'Bad Request' },
@@ -78,16 +79,19 @@ sub startup ($self) {
             my $next = shift;
             my $c    = shift;
             $c->session( ip => $c->tx->original_remote_address ) unless $c->session('ip');
-            if ( $c->session('ip') ne $c->tx->original_remote_address ) {
-                $c->session( expires => 1 );
-            }
-            else {
-                if ( my $uid = $c->session('user') ) {
-                    if ( my $user = $dbh->resultset('User')->find( { id => $uid } ) ) {
-                        my %user = $user->get_columns;
-                        delete %user{'password'};
-                        $c->stash( user    => \%user );
-                        $c->stash( api_key => $api_key );
+
+            unless ( $c->tx->is_websocket ) {
+                if ( $c->session('ip') ne $c->tx->original_remote_address ) {
+                    $c->session( expires => 1 );
+                }
+                else {
+                    if ( my $uid = $c->session('user') ) {
+                        if ( my $user = $dbh->resultset('User')->find( { id => $uid } ) ) {
+                            my %user = $user->get_columns;
+                            delete %user{'password'};
+                            $c->stash( user    => \%user );
+                            $c->stash( api_key => $api_key );
+                        }
                     }
                 }
             }
@@ -178,10 +182,12 @@ sub startup ($self) {
 
     # Api routes
     ## Log routes
+    $authorized_router->websocket('/ws/logs/latest')->to('log#latest_ws')->name('ws_latest_log');
     $app_authorized_router->post('/api/logs')->to('log#create')->name('create_log');
     $app_authorized_router->get('/api/logs')->to('log#find')->name('find_log');
     $app_authorized_router->get('/api/logs/latest')->to('log#latest')->name('latest_log');
     $app_authorized_router->get('/api/logs/today')->to('log#today')->name('today_log');
+    ## API Key routes
     $app_authorized_router->post('/api/keys')->to('key#create')->name('create_key');
 
     unless ( $ENV{'CLARK_PRODUCTION'} ) {

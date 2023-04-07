@@ -1,0 +1,1 @@
+export const time = () => Math.floor(Date.now() / 1000)
