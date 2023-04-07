@@ -1,43 +1,53 @@
 <script setup lang="ts">
 import { onMounted, reactive } from 'vue'
-import { latestLogWebSocket } from '@/lib/util/webSocket.js'
-import { time } from '@/lib/util/time.js'
+import { latestLogWebSocket } from '@/lib/util/webSocket'
+import { time } from '@/lib/util/time'
+import Table from '@/components/logging/Table.vue'
+import type { Log } from '@/lib/model/log'
 
 const state = reactive({
   matcher: "",
-  logs: "",
-  latestLogDate: time()
+  logs: [] as Log[],
+  latestLogDate: time(),
+  pageSize: 20
 })
 
-const request = () => {
+onMounted(() => {
   fetch('/api/test/logs/latest')
     .then(res => {
-      return res.json();
+      return res.json()
     })
-    .then(json => {
-      state.logs = JSON.stringify(json);
+    .then((json: Log[]) => {
+      state.logs = json
     })
-    .catch(() => state.logs = 'It went wrong')
-}
+    .catch(() => console.error('Something went wrong loading logs'))
 
-onMounted(() => {
   latestLogWebSocket.addEventListener('message', (message) => {
-    state.logs = message.data
+    const newLogs: Log[] = JSON.parse(message.data)
+    if (!newLogs.length) {
+      return
+    }
+
+    const oldLogsLength: number = state.logs.length
+    const logs: Log[] = [...state.logs, ...newLogs];
+
+    if (logs.length > state.pageSize) {
+      state.logs = logs.slice(logs.length - state.pageSize, logs.length);
+    } else {
+      state.logs = logs
+    }
   })
 
   setInterval(() => {
-    latestLogWebSocket.send(JSON.stringify({ date: state.latestLogDate }))
+    latestLogWebSocket.send(JSON.stringify({ date: state.latestLogDate, pageSize: state.pageSize }))
     state.latestLogDate = time()
-  }, 2500);
+  }, 2500)
 });
 </script>
 
 <template>
   <main>
     <input type="text" v-model="state.matcher" />
-    <button class="btn" @click="() => request()">Fire away</button>
-    <div class="text-white">
-      {{ state.logs }}
-    </div>
+    <Table :logs="state.logs"></Table>
   </main>
 </template>

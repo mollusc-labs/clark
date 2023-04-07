@@ -26,7 +26,12 @@ sub _can_attempt_login {
 
 sub index ($self) {
     return $self->redirect_to('/dashboard') if $self->session('user');
-    return $self->render;
+    return $self->redirect_to('/login');
+}
+
+sub login_index ($self) {
+    return $self->redirect_to('/dashboard') if $self->session('user');
+    return $self->render('clark/index');
 }
 
 sub login ($self) {
@@ -70,7 +75,7 @@ sub login ($self) {
 
 sub logout ($self) {
     if ( my $user = $self->session('user') ) {
-        $self->session( user => undef );
+        $self->session( expires => 1 );
     }
 
     $self->redirect_to('/');

@@ -54,7 +54,7 @@ sub startup ($self) {
 
     state $known_errors = {
         400 => { err => 400, msg => 'Bad Request' },
-        503 => { err => 503, msg => 'Servince Unavailable' }
+        503 => { err => 503, msg => 'Service Unavailable' }
     };
 
     $self->hook(
@@ -70,33 +70,6 @@ sub startup ($self) {
             else {
                 return $c->render( status => 503, json => $known_errors->{503} );
             }
-        }
-    );
-
-    # Session validity and keeping track of user
-    $self->hook(
-        around_dispatch => sub {
-            my $next = shift;
-            my $c    = shift;
-            $c->session( ip => $c->tx->original_remote_address ) unless $c->session('ip');
-
-            unless ( $c->tx->is_websocket ) {
-                if ( $c->session('ip') ne $c->tx->original_remote_address ) {
-                    $c->session( expires => 1 );
-                }
-                else {
-                    if ( my $uid = $c->session('user') ) {
-                        if ( my $user = $dbh->resultset('User')->find( { id => $uid } ) ) {
-                            my %user = $user->get_columns;
-                            delete %user{'password'};
-                            $c->stash( user    => \%user );
-                            $c->stash( api_key => $api_key );
-                        }
-                    }
-                }
-            }
-
-            $next->();
         }
     );
 
@@ -127,15 +100,49 @@ sub startup ($self) {
         }
     );
 
-    # For routes that require user authorization
+    # For routes that require an API-key
     my $authorized_router = $router->under(
         '/' => sub ($c) {
-            unless ( $c->session('user') ) {
-                $c->redirect_to('/');
+
+            # Web sockets dont carry sessions, they've already been authenticated
+            return 1 if $c->tx->is_websocket;
+
+            # For SPA requests
+            if ( $c->session('user') ) {
+                if ( not( $c->tx->is_websocket )
+                    && $c->session('ip') ne $c->tx->original_remote_address )
+                {
+                    $c->session( expires => 1 );
+                    $c->redirect_to('/');
+                    return undef;
+                }
+
+                my $uid = $c->session('user');
+                if ( my $user = $dbh->resultset('User')->find( { id => $uid } ) ) {
+                    my %user = $user->get_columns;
+                    delete %user{'password'};
+                    $c->stash( user    => \%user );
+                    $c->stash( api_key => $api_key );
+                }
+                else {
+                    $c->session( expires => 1 );
+                    $c->redirect_to('/');
+                    return undef;
+                }
+
+                return 1;
+            }
+
+            # Header should be in form: 'Bearer <API-JWT>'
+            my $req_api_key = ( split /\s/, $c->req->headers->to_hash->{'X-CLARK'} || '' )[-1];
+
+            eval { decode_jwt( token => $req_api_key, key => $ENV{'CLARK_API_KEY'} ); };
+            unless ( $req_api_key && not($@) ) {
+                $c->render( json => { err => 403, msg => 'Unauthorized' }, status => 403 );
                 return undef;
             }
 
-            return 1;
+            return defined $c->key_repository->by_key($req_api_key);
         }
     );
 
@@ -149,22 +156,9 @@ sub startup ($self) {
         }
     );
 
-    # For routes that require an API-key
-    my $app_authorized_router = $router->under(
-        '/' => sub ($c) {
-            my $req_api_key = split /\s/, $c->req->headers->to_hash->{'X-CLARK'};
-            eval { decode_jwt($req_api_key); };
-            unless ( $req_api_key && not($@) ) {
-                $c->render( json => { err => 403, msg => 'Unauthorized' }, status => 403 );
-                return undef;
-            }
-
-            return defined $c->key_repository->by_key($req_api_key);
-        }
-    );
-
     # Clark routes
-    $router->any('/')->to('clark#index')->name('clark_index');
+    $router->get('/')->to('clark#index')->name('clark_index');
+    $router->get('/login')->to('clark#login_index')->name('clark_login_index');
     $csrf_router->post('/login')->to('clark#login')->name('clark_login');
     $router->any('/logout')->to('clark#logout')->name('clark_logout');
 
@@ -181,14 +175,16 @@ sub startup ($self) {
     }
 
     # Api routes
+    ## Identification routes
+    $authorized_router->get('/api/users/identify')->to('users#identify')->name('identify_user');
     ## Log routes
     $authorized_router->websocket('/ws/logs/latest')->to('log#latest_ws')->name('ws_latest_log');
-    $app_authorized_router->post('/api/logs')->to('log#create')->name('create_log');
-    $app_authorized_router->get('/api/logs')->to('log#find')->name('find_log');
-    $app_authorized_router->get('/api/logs/latest')->to('log#latest')->name('latest_log');
-    $app_authorized_router->get('/api/logs/today')->to('log#today')->name('today_log');
+    $authorized_router->post('/api/logs')->to('log#create')->name('create_log');
+    $authorized_router->get('/api/logs')->to('log#find')->name('find_log');
+    $authorized_router->get('/api/logs/latest')->to('log#latest')->name('latest_log');
+    $authorized_router->get('/api/logs/today')->to('log#today')->name('today_log');
     ## API Key routes
-    $app_authorized_router->post('/api/keys')->to('key#create')->name('create_key');
+    $authorized_router->post('/api/keys')->to('key#create')->name('create_key');
 
     unless ( $ENV{'CLARK_PRODUCTION'} ) {
         $router->get('/api/test/logs')->to('log#find')->name('TEST_DELETE_ME');
