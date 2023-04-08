@@ -2,6 +2,7 @@
 import { onMounted, reactive } from 'vue'
 import { latestLogWebSocket } from '@/lib/util/webSocket'
 import { time } from '@/lib/util/time'
+import { dashboard } from '@/lib/util/store'
 import Table from '@/components/logging/Table.vue'
 import type { Log } from '@/lib/model/log'
 
@@ -15,7 +16,7 @@ const state = reactive({
 
 const update = (size: number) => {
   state.loading = true;
-  fetch('/api/test/logs/latest')
+  fetch('/api/test/logs/latest' + dashboard.selected) // Apply query params
     .then(res => {
       return res.json()
     })
