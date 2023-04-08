@@ -10,10 +10,9 @@ use Clark::Util::Inflate;
 use Data::Dumper;
 use DateTime;
 
-sub find {
+sub _find {
     my $self   = shift;
     my %params = %{ $self->req->params->to_hash };
-    my @logs;
     if (   $params{'from'}
         && $params{'to'} )
     {
@@ -21,14 +20,26 @@ sub find {
         my $to   = DateTime->from_epoch( epoch => $params{'to'} )   || DateTime->now;
         delete $params{'from'};
         delete $params{'to'};
-        @logs = Clark::Util::Inflate->many( $self->log_repository->from_date( $from, $to )->by_params(%params) );
+        return $self->log_repository->from_date( $from, $to )->by_params(%params);
     }
     else {
         delete $params{'to'};
         delete $params{'from'};
-        @logs = Clark::Util::Inflate->many( $self->log_repository->by_params(%params) );
+        return $self->log_repository->by_params(%params);
     }
+}
+
+sub find {
+    my $self = shift;
+    $self->app->log->info( Dumper $self->_find );
+    my @logs = Clark::Util::Inflate->many( $self->_find );
     return $self->render( json => \@logs );
+}
+
+sub count {
+    my $self  = shift;
+    my $count = $self->_find->search( {}, { '+select' => [ { count => '*', -as => 'total' } ] } ) . get_column('total');
+    return $self->render( json => { count => $count } );
 }
 
 sub latest {

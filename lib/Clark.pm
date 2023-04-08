@@ -223,6 +223,7 @@ sub startup ($self) {
     $authorized_router->get('/api/logs')->to('log#find')->name('find_log');
     $authorized_router->get('/api/logs/latest')->to('log#latest')->name('latest_log');
     $authorized_router->get('/api/logs/today')->to('log#today')->name('today_log');
+    $authorized_router->get('/api/logs/count')->to('log#count')->name('count_log');
     ## API Key routes
     $authorized_router->post('/api/keys')->to('key#create')->name('create_key');
 
