@@ -8,10 +8,26 @@ use Mojo::Base 'Mojolicious::Controller', -signatures;
 use Mojo::JSON qw(encode_json decode_json);
 use Clark::Util::Inflate;
 use Data::Dumper;
+use DateTime;
 
 sub find {
-    my $self = shift;
-    my @logs = Clark::Util::Inflate->many( $self->log_repository->by_params( %{ $self->req->params->to_hash } ) );
+    my $self   = shift;
+    my %params = %{ $self->req->params->to_hash };
+    my @logs;
+    if (   $params{'from'}
+        && $params{'to'} )
+    {
+        my $from = DateTime->from_epoch( epoch => $params{'from'} ) || DateTime->from_epoch( epoch => 0 );
+        my $to   = DateTime->from_epoch( epoch => $params{'to'} )   || DateTime->now;
+        delete $params{'from'};
+        delete $params{'to'};
+        @logs = Clark::Util::Inflate->many( $self->log_repository->from_date( $from, $to )->by_params(%params) );
+    }
+    else {
+        delete $params{'to'};
+        delete $params{'from'};
+        @logs = Clark::Util::Inflate->many( $self->log_repository->by_params(%params) );
+    }
     return $self->render( json => \@logs );
 }
 

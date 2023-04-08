@@ -2,19 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  position: relative;
-  font-weight: normal;
-}
-
 body {
-  min-height: 100vh;
-  color: var(--color-text);
-  background: var(--color-background);
+  max-height: 100vh;
+  color: gray;
   transition: color 0.5s, background-color 0.5s;
   line-height: 1.6;
   font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
@@ -23,13 +13,4 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* Custom tailwind classes */
-.btn {
-  @apply bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center;
-}
-
-.btn:hover {
-  @apply bg-gray-400;
 }

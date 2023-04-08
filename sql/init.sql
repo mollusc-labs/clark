@@ -37,4 +37,12 @@ CREATE TABLE IF NOT EXISTS api_key (
     INDEX (value)
 );
 
+CREATE TABLE IF NOT EXISTS dashboard (
+    id VARCHAR(36) DEFAULT (UUID()) PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    query VARCHAR NOT NULL,
+    owner VARCHAR(36) NOT NULL,
+    CONSTRAINT owner_fk FOREIGN KEY (owner) REFERENCES user(id)
+);
+
 COMMIT;

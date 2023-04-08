@@ -76,8 +76,8 @@ sub startup ($self) {
     # Make sure there's always at least one user.
     unless ( scalar $self->user_repository->search->all ) {
         my $user = {
-            name     => $ENV{'CLARK_USER'} || 'clark',
-            password => Clark::Util::Crypt->hash( $ENV{'CLARK_PASS'} || 'clark' ),
+            name     => $ENV{'CLARK_USER'} || croak 'Your clark user is not set, please read QUICKSTART.md',
+            password => Clark::Util::Crypt->hash( $ENV{'CLARK_PASS'} || croak 'Your clark password is not set, please read QUICKSTART.md' ),
             is_admin => 1
         };
 

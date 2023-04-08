@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 
 export const user = reactive({
-    name: 'unknown'
+    name: 'unknown',
+    dashboard: null
 });

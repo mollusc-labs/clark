@@ -9,45 +9,53 @@ const state = reactive({
   matcher: "",
   logs: [] as Log[],
   latestLogDate: time(),
+  loading: true,
   pageSize: 20
 })
 
-onMounted(() => {
+const update = (size: number) => {
+  state.loading = true;
   fetch('/api/test/logs/latest')
     .then(res => {
       return res.json()
     })
     .then((json: Log[]) => {
       state.logs = json
+
+      latestLogWebSocket.removeEventListener('message', () => { });
+      latestLogWebSocket.addEventListener('message', (message) => {
+        const newLogs: Log[] = JSON.parse(message.data)
+        if (!newLogs.length) {
+          return
+        }
+
+        const logs: Log[] = [...state.logs, ...newLogs];
+
+        if (logs.length > size) {
+          state.logs = logs.slice(logs.length - size, logs.length);
+        } else {
+          state.logs = logs
+        }
+      })
+
+      state.loading = false;
     })
     .catch(() => console.error('Something went wrong loading logs'))
+}
 
-  latestLogWebSocket.addEventListener('message', (message) => {
-    const newLogs: Log[] = JSON.parse(message.data)
-    if (!newLogs.length) {
-      return
-    }
-
-    const oldLogsLength: number = state.logs.length
-    const logs: Log[] = [...state.logs, ...newLogs];
-
-    if (logs.length > state.pageSize) {
-      state.logs = logs.slice(logs.length - state.pageSize, logs.length);
-    } else {
-      state.logs = logs
-    }
-  })
-
+onMounted(() => {
+  update(state.pageSize);
   setInterval(() => {
-    latestLogWebSocket.send(JSON.stringify({ date: state.latestLogDate, pageSize: state.pageSize }))
-    state.latestLogDate = time()
+    if (!state.loading) {
+      latestLogWebSocket.send(JSON.stringify({ date: state.latestLogDate, pageSize: state.pageSize }))
+      state.latestLogDate = time()
+    }
   }, 2500)
 });
 </script>
 
 <template>
   <main>
-    <input type="text" v-model="state.matcher" />
-    <Table :logs="state.logs"></Table>
+    <Table :page-func="update" :loading="state.loading" :logs="state.logs"></Table>
   </main>
 </template>

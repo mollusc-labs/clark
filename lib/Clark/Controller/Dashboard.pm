@@ -17,4 +17,9 @@ sub dev {
     return $self->redirect_to('http://localhost:5173/dashboard');
 }
 
+sub create {
+    my $self = shift;
+    my $name = $self->req->json->{'name'} || 'Unnamed Dashboard';
+}
+
 1;
