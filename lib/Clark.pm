@@ -45,6 +45,8 @@ my $api_key = $ENV{'CLARK_API_KEY'} || croak 'You need to set the "CLARK_API_KEY
 
 sub startup ($self) {
 
+    $self->app->secrets( [$api_key] );
+
     # Database boilerplate
     my $dbh = $c->resolve( service => 'Database/dbh' );
     $self->helper( user_repository => sub { return $dbh->resultset('User') } );
@@ -100,7 +102,44 @@ sub startup ($self) {
         }
     );
 
-    # For routes that require an API-key
+    # For routes only accessible by a session token
+    my $only_authorized_router = $router->under(
+        '/' => sub ($c) {
+
+            # Web sockets dont carry sessions, they've already been authenticated
+            return 1 if $c->tx->is_websocket;
+
+            # For SPA requests
+            if ( $c->session('user') ) {
+                if ( not( $c->tx->is_websocket )
+                    && $c->session('ip') ne $c->tx->original_remote_address )
+                {
+                    $c->session( expires => 1 );
+                    $c->redirect_to('/');
+                    return undef;
+                }
+
+                my $uid = $c->session('user');
+                if ( my $user = $dbh->resultset('User')->find( { id => $uid } ) ) {
+                    my %user = $user->get_columns;
+                    delete %user{'password'};
+                    $c->stash( user    => \%user );
+                    $c->stash( api_key => $api_key );
+                }
+                else {
+                    $c->session( expires => 1 );
+                    $c->redirect_to('/');
+                    return undef;
+                }
+
+                return 1;
+            }
+
+            return undef;
+        }
+    );
+
+    # For routes that require an API-key OR session token
     my $authorized_router = $router->under(
         '/' => sub ($c) {
 
@@ -146,6 +185,7 @@ sub startup ($self) {
         }
     );
 
+    # For routest that require administrator access
     my $admin_authorized_router = $authorized_router->under(
         '/' => sub ($c) {
             unless ( $c->stash('user')->is_admin ) {
@@ -163,20 +203,20 @@ sub startup ($self) {
     $router->any('/logout')->to('clark#logout')->name('clark_logout');
 
     # User routes
-    $authorized_router->post('/change-password')->to('clark#change_password')->name('clark_change_password');
-    $authorized_router->post('/update-user')->to('clark#update_user')->name('clark_update_user');
+    $only_authorized_router->post('/change-password')->to('clark#change_password')->name('clark_change_password');
+    $only_authorized_router->post('/update-user')->to('clark#update_user')->name('clark_update_user');
 
     # Dashboard routes
     if ( $ENV{'CLARK_PRODUCTION'} ) {
-        $authorized_router->get('/dashboard')->to('dashboard#index')->name('dashboard_index');
+        $only_authorized_router->get('/dashboard')->to('dashboard#index')->name('dashboard_index');
     }
     else {
-        $authorized_router->get('/dashboard')->to('dashboard#dev')->name('dashboard_dev');
+        $only_authorized_router->get('/dashboard')->to('dashboard#dev')->name('dashboard_dev');
     }
 
     # Api routes
     ## Identification routes
-    $authorized_router->get('/api/users/identify')->to('users#identify')->name('identify_user');
+    $only_authorized_router->get('/api/users/identify')->to('user#identify')->name('identify_user');
     ## Log routes
     $authorized_router->websocket('/ws/logs/latest')->to('log#latest_ws')->name('ws_latest_log');
     $authorized_router->post('/api/logs')->to('log#create')->name('create_log');
@@ -185,14 +225,6 @@ sub startup ($self) {
     $authorized_router->get('/api/logs/today')->to('log#today')->name('today_log');
     ## API Key routes
     $authorized_router->post('/api/keys')->to('key#create')->name('create_key');
-
-    unless ( $ENV{'CLARK_PRODUCTION'} ) {
-        $router->get('/api/test/logs')->to('log#find')->name('TEST_DELETE_ME');
-        $router->post('/api/test/logs')->to('log#create')->name('DELETE_ME_TOO');
-        $router->get('/api/test/logs/latest')->to('log#latest')->name('DELETE_ME_THREE');
-        $router->get('/api/test/logs/today')->to('log#today')->name('DELETE_MEEEEE');
-        $router->post('/api/test/keys')->to('key#create')->name('DELETEEE_THIS');
-    }
 
     $self->app->log($log);
 }

@@ -6,6 +6,7 @@ use experimental qw(signatures);
 use Mojo::Util   qw(secure_compare);
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 use Clark::Util::Crypt;
+use Data::Dumper;
 
 sub _validate_username_uniqueness {
     my $self     = shift;
@@ -57,6 +58,12 @@ sub update_user {
 
     $user->username($username)->is_admin($is_admin)->update;
     return $self->render( status => 204 );
+}
+
+sub identify {
+    my $self = shift;
+    my %user = $self->user_repository->identify( $self->session('user') )->get_inflated_columns;
+    return $self->render( json => \%user );
 }
 
 1;

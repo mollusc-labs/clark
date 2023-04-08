@@ -24,7 +24,7 @@ const clicked = (value: string) => {
 }
 </script>
 <template>
-    <v-data-table class="elevation-1" :loading="props.loading" :headers="headers" :items="props.logs"
+    <v-data-table class="elevation-1 width" :loading="props.loading" :headers="headers" :items="props.logs"
         :sort-by.sync="[{ key: 'created_at', order: 'desc' }]" items-per-page="15" :rows-per-page-items="[20, 30, 40, 50]"
         v-model:expanded="expanded" show-expand height="100%">
         <template v-slot:item.severity="{ item }">

@@ -7,8 +7,17 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { VDataTable } from 'vuetify/labs/VDataTable'
+import { aliases, mdi } from 'vuetify/iconsets/mdi'
+import '@mdi/font/css/materialdesignicons.css'
 
 const vuetify = createVuetify({
+    icons: {
+        defaultSet: 'mdi',
+        aliases,
+        sets: {
+            mdi
+        }
+    },
     components: {
         VDataTable,
         ...components

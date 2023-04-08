@@ -6,17 +6,18 @@ import { dashboard } from '@/lib/util/store'
 import Table from '@/components/logging/Table.vue'
 import type { Log } from '@/lib/model/log'
 
+const SIZE = 100
+
 const state = reactive({
   matcher: "",
   logs: [] as Log[],
   latestLogDate: time(),
-  loading: true,
-  pageSize: 20
+  loading: true
 })
 
-const update = (size: number) => {
+const update = () => {
   state.loading = true;
-  fetch('/api/test/logs/latest' + dashboard.selected) // Apply query params
+  fetch('/api/logs' + dashboard.selected) // Apply query params
     .then(res => {
       return res.json()
     })
@@ -25,15 +26,15 @@ const update = (size: number) => {
 
       latestLogWebSocket.removeEventListener('message', () => { });
       latestLogWebSocket.addEventListener('message', (message) => {
-        const newLogs: Log[] = JSON.parse(message.data)
+        const newLogs: Log[] = JSON.parse(message.data) || []
         if (!newLogs.length) {
           return
         }
 
         const logs: Log[] = [...state.logs, ...newLogs];
 
-        if (logs.length > size) {
-          state.logs = logs.slice(logs.length - size, logs.length);
+        if (logs.length > state.logs.length) {
+          state.logs = logs.slice(logs.length - state.logs.length, logs.length);
         } else {
           state.logs = logs
         }
@@ -44,15 +45,18 @@ const update = (size: number) => {
     .catch(() => console.error('Something went wrong loading logs'))
 }
 
-onMounted(() => {
-  update(state.pageSize);
+const getLogsAndRunSocket = () => {
+  update();
+
   setInterval(() => {
     if (!state.loading) {
-      latestLogWebSocket.send(JSON.stringify({ date: state.latestLogDate, pageSize: state.pageSize }))
+      latestLogWebSocket.send(JSON.stringify({ date: state.latestLogDate }))
       state.latestLogDate = time()
     }
   }, 2500)
-});
+}
+
+onMounted(getLogsAndRunSocket);
 </script>
 
 <template>
