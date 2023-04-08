@@ -37,34 +37,33 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-row">
-    <v-card>
-      <v-layout>
-        <v-navigation-drawer>
-          <v-list class="max-h-screen" nav>
-            <v-list-item>{{ user.name }}'s Dashboards</v-list-item>
-            <v-list class="overflow-y-auto" style="max-height: 80vh">
-              <v-list-item v-for="db in state.dashboards" @click="() => selectDashboard(db)" :title="db.name"
-                :value="db.query"></v-list-item>
-            </v-list>
-            <v-list-item class="align-center justify-center">
-              <div class="m-3">
-                <v-btn icon="mdi-plus" class="elevation-1" size="small">
-                  <v-icon icon="mdi-plus"></v-icon>
-                  <v-tooltip activator="parent" location="bottom" text="Add dashboard"></v-tooltip>
-                </v-btn>
-              </div>
-            </v-list-item>
-            <v-list-item></v-list-item>
+  <v-card>
+    <v-layout wrap>
+      <v-navigation-drawer>
+        <v-list class="max-h-screen" nav>
+          <v-list-item>{{ user.name }}'s Dashboards</v-list-item>
+          <v-list class="overflow-y-auto" style="max-height: 80vh">
+            <v-list-item v-for="db in state.dashboards" @click="() => selectDashboard(db)" :title="db.name"
+              :value="db.query"></v-list-item>
           </v-list>
-        </v-navigation-drawer>
-        <v-main></v-main>
-      </v-layout>
-    </v-card>
-    <v-container class="w-fill align-center m-0">
-      <RouterView />
-    </v-container>
-  </div>
+          <v-list-item class="align-center justify-center">
+            <div class="m-3">
+              <v-btn icon="mdi-plus" class="elevation-1" size="small">
+                <v-icon icon="mdi-plus"></v-icon>
+                <v-tooltip activator="parent" location="bottom" text="Add dashboard"></v-tooltip>
+              </v-btn>
+            </div>
+          </v-list-item>
+          <v-list-item></v-list-item>
+        </v-list>
+      </v-navigation-drawer>
+      <v-main>
+        <v-container class="w-fill max-h-screen align-center m-0">
+          <RouterView />
+        </v-container>
+      </v-main>
+    </v-layout>
+  </v-card>
 </template>
 
 <style scoped></style>

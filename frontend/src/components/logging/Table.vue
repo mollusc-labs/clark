@@ -24,20 +24,22 @@ const clicked = (value: string) => {
 }
 </script>
 <template>
-    <v-data-table class="elevation-1 width" :loading="props.loading" :headers="headers" :items="props.logs"
-        :sort-by.sync="[{ key: 'created_at', order: 'desc' }]" items-per-page="15" :rows-per-page-items="[20, 30, 40, 50]"
-        v-model:expanded="expanded" show-expand height="100%">
-        <template v-slot:item.severity="{ item }">
-            <v-chip :color="getColor(item.raw.severity)" class="w-100">
-                <div class="w-100 text-center">{{ translateSeverity(item.raw.severity) }}</div>
-            </v-chip>
-        </template>
-        <template v-slot:expanded-item="{ columns, item }">
-            <tr>
-                <td :colspan="columns.length">
-                    <p class="text-gray-600">{{ item.raw.message }}</p>
-                </td>
-            </tr>
-        </template>
-    </v-data-table>
+    <v-flex md6 class="m0 p0">
+        <v-data-table class="elevation-1 overflow-y-auto" :loading="props.loading" :headers="headers" :items="props.logs"
+            :sort-by.sync="[{ key: 'created_at', order: 'desc' }]" items-per-page="15"
+            :rows-per-page-items="[20, 30, 40, 50]" v-model:expanded="expanded" show-expand height="100%">
+            <template v-slot:item.severity="{ item }">
+                <v-chip :color="getColor(item.raw.severity)" class="w-100">
+                    <div class="w-100 text-center">{{ translateSeverity(item.raw.severity) }}</div>
+                </v-chip>
+            </template>
+            <template v-slot:expanded-item="{ columns, item }">
+                <tr>
+                    <td :colspan="columns.length">
+                        <p class="text-gray-600">{{ item.raw.message }}</p>
+                    </td>
+                </tr>
+            </template>
+        </v-data-table>
+    </v-flex>
 </template>
