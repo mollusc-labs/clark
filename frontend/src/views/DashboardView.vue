@@ -5,9 +5,9 @@ import { time } from '@/lib/util/time'
 import { dashboard } from '@/lib/util/store'
 import Table from '@/components/logging/Table.vue'
 import type { Log } from '@/lib/model/log'
-import { onUpdated } from 'vue'
 import { watch } from 'vue'
 import { ref } from 'vue'
+import TimeGraph from '@/components/logging/TimeGraph.vue'
 
 const SIZE = 100
 
@@ -81,10 +81,15 @@ watch(realtime, (value, old) => {
 </script>
 
 <template>
-  <main class="max-h-screen">
-    <v-card>
-      <v-switch label="Realtime Update" v-model="realtime"></v-switch>
-    </v-card>
-    <Table :page-func="update" :loading="state.loading" :logs="state.logs"></Table>
-  </main>
+  <v-card class="mb-2">
+    <v-content>
+      <TimeGraph :logs="state.logs" :loading="state.loading"></TimeGraph>
+    </v-content>
+  </v-card>
+  <v-card>
+    <v-content>
+      <v-switch label="Real-time Updates" v-model="realtime" color="blue"></v-switch>
+    </v-content>
+  </v-card>
+  <Table :page-func="update" :loading="state.loading" :logs="state.logs"></Table>
 </template>

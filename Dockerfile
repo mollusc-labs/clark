@@ -1,7 +1,7 @@
 FROM perl:latest AS build
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y default-libmysqlclient-dev
-RUN cpan Mojolicious Bread::Board DBI DBD::mysql DBIx::Class Crypt::Argon2 DateTime Crypt::JWT DateTime::Format::MySQL
+RUN cpan Mojolicious Bread::Board DBI DBD::mysql DBIx::Class Crypt::Argon2 DateTime Crypt::JWT DateTime::Format::MySQL JSON::Validator
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && apt-get install -y nodejs
 RUN npm install -g yarn
 

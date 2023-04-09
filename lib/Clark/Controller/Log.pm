@@ -12,28 +12,26 @@ use DateTime;
 
 sub _find {
     my $self   = shift;
-    my %params = %{ $self->req->params->to_hash };
-    if (   $params{'from'}
-        && $params{'to'} )
+    my $params = $self->req->params->to_hash;
+    if (   $params->{'from'}
+        && $params->{'to'} )
     {
-        my $from = DateTime->from_epoch( epoch => $params{'from'} ) || DateTime->from_epoch( epoch => 0 );
-        my $to   = DateTime->from_epoch( epoch => $params{'to'} )   || DateTime->now;
-        delete $params{'from'};
-        delete $params{'to'};
-        return $self->log_repository->from_date( $from, $to )->by_params(%params);
+        my $from = DateTime->from_epoch( epoch => $params->{'from'} ) || DateTime->from_epoch( epoch => 0 );
+        my $to   = DateTime->from_epoch( epoch => $params->{'to'} )   || DateTime->now;
+        delete $params->{'from'};
+        delete $params->{'to'};
+        return $self->log_repository->from_date( $from, $to )->by_params( %{$params} );
     }
     else {
-        delete $params{'to'};
-        delete $params{'from'};
-        return $self->log_repository->by_params(%params);
+        delete $params->{'to'};
+        delete $params->{'from'};
+        return $self->log_repository->by_params( %{$params} );
     }
 }
 
 sub find {
     my $self = shift;
-    $self->app->log->info( Dumper $self->_find );
-    my @logs = Clark::Util::Inflate->many( $self->_find );
-    return $self->render( json => \@logs );
+    return $self->render( json => Clark::Util::Inflate->many( $self->_find ) );
 }
 
 sub count {
@@ -44,8 +42,7 @@ sub count {
 
 sub latest {
     my $self = shift;
-    my @logs = Clark::Util::Inflate->many( $self->log_repository->latest( $self->req->param('count') ) );
-    return $self->render( json => \@logs );
+    return $self->render( json => Clark::Util::Inflate->many( $self->log_repository->latest( $self->req->param('count') ) ) );
 }
 
 sub latest_ws {
@@ -63,28 +60,30 @@ sub latest_ws {
             }
 
             my $date = DateTime->from_epoch( epoch => $req->{'date'} ) || return;
-            my @logs = Clark::Util::Inflate->many( $self->log_repository->from_date($date) );
-            $c->send( encode_json( \@logs ) );
+            $c->send( encode_json( Clark::Util::Inflate->many( $self->log_repository->from_date( $date, DateTime->now, 100 ) ) ) );
         }
     );
 }
 
 sub today {
     my $self = shift;
-    my @logs = Clark::Util::Inflate->many( $self->log_repository->today( $self->req->param('service_name') ) );
-    return $self->render( json => \@logs );
+    return $self->render( json => [ Clark::Util::Inflate->many( $self->log_repository->today( $self->req->param('service_name') ) ) ] );
 }
 
 sub create {
-    my $self    = shift;
-    my %json_in = %{ $self->req->json };
-    $json_in{'hostname'}   = 'REST';
-    $json_in{'process_id'} = 'REST';
-    my $log = $self->log_repository->create( \%json_in )
-        || return $self->render( status => 400, json => { err => 400, msg => 'Invalid JSON for logging' } );
-    my %json = $log->get_columns;
-    delete $json{'id'};
-    $self->render( status => 201, json => \%json );
+    my $self = shift;
+    my $json = { $self->req->json->to_hash };
+
+    my @errors = $self->log_validator->validate($json);
+    if ( scalar @errors ) {
+        return $self->render( json => { err => 400, msg => \@errors }, status => 400 );
+    }
+
+    $json->{'hostname'}   = 'rest' unless $json->{'hostname'};
+    $json->{'process_id'} = 'rest' unless $json->{'process_id'};
+
+    my $log = $self->log_repository->create($json);
+    $self->render( status => 201, json => { $log->get_inflated_columns } );
 }
 
 1;

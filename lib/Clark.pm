@@ -37,6 +37,17 @@ my $c = container 'Clark' => as {
             dependencies => [ 'dsn', 'username', 'password' ]
         );
     };
+
+    container 'Validator' => as {
+        service 'dashboard' => (
+            lifecycle => 'Singleton',
+            block     => sub {
+                require Clark::Validator::Dashboard;
+                return Clark::Validator::Dashboard->new;
+            },
+            dependencies => []
+        );
+    };
 };
 
 no Bread::Board;
@@ -49,10 +60,14 @@ sub startup ($self) {
 
     # Database boilerplate
     my $dbh = $c->resolve( service => 'Database/dbh' );
-    $self->helper( user_repository => sub { return $dbh->resultset('User') } );
-    $self->helper( log_repository  => sub { return $dbh->resultset('Log') } );
-    $self->helper( key_repository  => sub { return $dbh->resultset('Key') } );
-    $self->helper( datetime_parser => sub { return $dbh->storage->datetime_parser } );
+    $self->helper( user_repository      => sub { return $dbh->resultset('User') } );
+    $self->helper( log_repository       => sub { return $dbh->resultset('Log') } );
+    $self->helper( key_repository       => sub { return $dbh->resultset('Key') } );
+    $self->helper( dashboard_repository => sub { return $dbh->resultset('Dashboard') } );
+    $self->helper( datetime_parser      => sub { return $dbh->storage->datetime_parser } );
+
+    # Other dependencies
+    $self->helper( dashboard_validator => sub { return $c->resolve( service => 'Validator/dashboard' ) } );
 
     state $known_errors = {
         400 => { err => 400, msg => 'Bad Request' },
@@ -77,13 +92,15 @@ sub startup ($self) {
 
     # Make sure there's always at least one user.
     unless ( scalar $self->user_repository->search->all ) {
-        my $user = {
-            name     => $ENV{'CLARK_USER'} || croak 'Your clark user is not set, please read QUICKSTART.md',
-            password => Clark::Util::Crypt->hash( $ENV{'CLARK_PASS'} || croak 'Your clark password is not set, please read QUICKSTART.md' ),
+        croak 'Your clark user is not set, please read QUICKSTART.md'     unless $ENV{'CLARK_USER'};
+        croak 'Your clark password is not set, please read QUICKSTART.md' unless $ENV{'CLARK_PASS'};
+        my %user = (
+            name     => $ENV{'CLARK_USER'},
+            password => Clark::Util::Crypt->hash( $ENV{'CLARK_PASS'} ),
             is_admin => 1
-        };
+        );
 
-        $self->user_repository->new_result($user)->insert;
+        $self->user_repository->create( \%user )->insert;
     }
 
     my $log = Mojo::Log->new( level => 'trace' );

@@ -12,7 +12,7 @@ const state = reactive<{ dashboards: Dashboard[], selectedDashboard: string }>({
   selectedDashboard: DEFAULT_DASHBOARD,
   dashboards: [{
     id: DEFAULT_DASHBOARD,
-    name: 'Overview',
+    name: 'Latest',
     query: '?size=100'
   }]
 })
@@ -44,7 +44,7 @@ onMounted(() => {
           <v-list-item>{{ user.name }}'s Dashboards</v-list-item>
           <v-list class="overflow-y-auto" style="max-height: 80vh">
             <v-list-item v-for="db in state.dashboards" @click="() => selectDashboard(db)" :title="db.name"
-              :value="db.query"></v-list-item>
+              :value="db.query" :active="state.selectedDashboard === db.id"></v-list-item>
           </v-list>
           <v-list-item class="align-center justify-center">
             <div class="m-3">
@@ -54,11 +54,21 @@ onMounted(() => {
               </v-btn>
             </div>
           </v-list-item>
-          <v-list-item></v-list-item>
+          <div class="h-full flex flex-column justify-end">
+            <hr class="mt-auto">
+            <v-list-item class="justify-self-end justify-center">
+              <div class="flex justify-between w-full">
+                <RouterLink to="/admin" class="block mr-8 underline text-blue-500" v-if="user.is_admin">
+                  Admin Zone
+                </RouterLink>
+                <a href="https://github.com/mollusc-labs/clark" class="block underline text-blue-500">Help</a>
+              </div>
+            </v-list-item>
+          </div>
         </v-list>
       </v-navigation-drawer>
       <v-main>
-        <v-container class="w-fill max-h-screen align-center m-0">
+        <v-container class="w-fill h-screen align-center m-0" fluid>
           <RouterView />
         </v-container>
       </v-main>

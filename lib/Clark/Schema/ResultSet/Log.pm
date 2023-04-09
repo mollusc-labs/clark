@@ -11,25 +11,37 @@ use Clark::Schema;
 
 sub by_params {
     my $self = shift;
-    my %args = @_;
-    my $size = $args{'size'};
-    my $page = $args{'page'};
+    my $args = {@_};
+
+    my $size = $args->{'size'} || 10;
+    my $page = $args->{'page'} || 1;
 
     if ( looks_like_number $page ) {
-        delete $args{'page'};
+        delete $args->{'page'};
     }
 
     if ( looks_like_number $size ) {
-        delete $args{'size'};
+        delete $args->{'size'};
     }
 
-    return $self->latest($size)->search(
-        \%args || {},
-        {   page => $page || 1,
-            rows => $size || 10,
-            { order_by => { -desc => 'created_at' } }
-        }
-    );
+    if ( scalar %{$args} ) {
+        return $self->latest($size)->search(
+            $args,
+            {   page => $page,
+                rows => $size,
+                { order_by => { -desc => 'created_at' } }
+            }
+        );
+    }
+    else {
+        return $self->latest($size)->search(
+            {},
+            {   page => $page,
+                rows => $size,
+                { order_by => { -desc => 'created_at' } }
+            }
+        );
+    }
 }
 
 sub by_service {

@@ -7,7 +7,7 @@ use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components(qw/InflateColumn::DateTime PK::Auto Core/);
 
-__PACKAGE__->table('api_key');
+__PACKAGE__->table('dashboard');
 __PACKAGE__->add_columns(
     id => {
         data_type         => 'varchar',

@@ -5,6 +5,7 @@ use warnings;
 use experimental qw(say);
 use Data::Dumper;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
+use Clark::Util::Inflate;
 
 sub index {
     my $self = shift;
@@ -20,6 +21,18 @@ sub dev {
 sub create {
     my $self = shift;
     my $name = $self->req->json->{'name'} || 'Unnamed Dashboard';
+}
+
+sub update {
+
+}
+
+sub find {
+    my $self = shift;
+    my $id   = $self->session('user');
+
+    my @dashboards = Clark::Util::Inflate->many( $self->dashboard_repository->search( { owner => $id } ) );
+    $self->render( json => \@dashboards );
 }
 
 1;

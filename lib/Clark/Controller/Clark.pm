@@ -51,7 +51,7 @@ sub login ($self) {
     if ( not( $self->_can_attempt_login ) ) {
         $self->session( last_login_attempt => time );
         $self->app->log->info("Login attempt for user $user failed due to too many attempts");
-        $self->stash( message => 'You\'ve tried to login too many times recently, try again later' );
+        $self->stash( error => 'You\'ve tried to login too many times recently, try again later' );
         return $self->render( status => 429, template => 'clark/index' );
     }
 
@@ -66,9 +66,10 @@ sub login ($self) {
         $self->redirect_to('/dashboard');
     }
     else {
+        $self->app->renderer->cache->max_keys(0);
         $self->session( last_login_attempt => time );
         $self->app->log->info("Invalid login attempt for user: $user");
-        $self->stash( message => 'Invalid Login' );
+        $self->stash( error => 'Invalid Login' );
         $self->render( status => 404, template => 'clark/index' );
     }
 }

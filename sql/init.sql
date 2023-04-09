@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS log (
     severity INTEGER NOT NULL,
     process_id VARCHAR(50) NOT NULL,
     message TEXT NOT NULL,
-    created_at DATETIME DEFAULT (NOW())
+    created_at DATETIME DEFAULT (NOW()),
+    FULLTEXT (message, hostname, service_name)
 );
 
 CREATE TABLE IF NOT EXISTS api_key (

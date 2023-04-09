@@ -2,6 +2,11 @@
 import { getColor } from '@/lib/util/severityColor'
 import { translateSeverity } from '@/lib/util/severityTranslation'
 import type { Log } from '@/lib/model/log'
+import { reactive } from 'vue';
+
+const state = reactive({
+    expanded: [] as string[]
+});
 
 const props = defineProps<{ logs: Log[], loading: boolean, pageFunc: (size: number) => void }>()
 const headers = [
@@ -12,34 +17,38 @@ const headers = [
     { title: 'Date', align: 'start', key: 'created_at' },
     { title: '', key: 'data-table-expand' }
 ]
-let expanded: string[] = []
 
 const clicked = (value: string) => {
-    const index = expanded.indexOf(value)
+    const index = state.expanded.indexOf(value)
     if (index === -1) {
-        expanded.push(value)
+        state.expanded.push(value)
     } else {
-        expanded.splice(index, 1)
+        state.expanded.splice(index, 1)
     }
 }
 </script>
 <template>
-    <v-flex md6 class="m0 p0">
-        <v-data-table class="elevation-1 overflow-y-auto" :loading="props.loading" :headers="headers" :items="props.logs"
-            :sort-by.sync="[{ key: 'created_at', order: 'desc' }]" items-per-page="15"
-            :rows-per-page-items="[20, 30, 40, 50]" v-model:expanded="expanded" show-expand height="100%">
-            <template v-slot:item.severity="{ item }">
-                <v-chip :color="getColor(item.raw.severity)" class="w-100">
-                    <div class="w-100 text-center">{{ translateSeverity(item.raw.severity) }}</div>
-                </v-chip>
-            </template>
-            <template v-slot:expanded-item="{ columns, item }">
-                <tr>
-                    <td :colspan="columns.length">
-                        <p class="text-gray-600">{{ item.raw.message }}</p>
-                    </td>
-                </tr>
-            </template>
-        </v-data-table>
-    </v-flex>
+    <v-card class="mt-2 p0" max-height="calc(100% - 9vh)">
+        <v-content height="inherit">
+            <v-data-table @click:row="clicked" class="elevation-1" :loading="props.loading" :headers="headers"
+                :items="props.logs" items-per-page="15" fixed-header fixed-footer v-model:expanded="state.expanded"
+                show-expand height="82vh">
+                <template v-slot:header="{ props }">
+                    <th v-for="head in props.headers" class="font-bold">{{ head.text }}</th>
+                </template>
+                <template @click.stop v-slot:item.severity="{ item }">
+                    <v-chip :color="getColor(item.raw.severity)" class="w-100">
+                        <div class="w-100 text-center">{{ translateSeverity(item.raw.severity) }}</div>
+                    </v-chip>
+                </template>
+                <template @click.stop v-slot:expanded-row="{ columns, item }">
+                    <tr>
+                        <td :colspan="columns.length">
+                            <p class="text-gray-600">{{ item.raw.message }}</p>
+                        </td>
+                    </tr>
+                </template>
+            </v-data-table>
+        </v-content>
+    </v-card>
 </template>
