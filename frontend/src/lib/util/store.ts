@@ -1,4 +1,5 @@
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
+import type { Ref } from 'vue'
 import type { User } from '../model/user'
 
 export const user = reactive<User>({
@@ -6,6 +7,6 @@ export const user = reactive<User>({
     is_admin: false
 })
 
-export const dashboard = reactive<{ selected: string | null }>({
-    selected: null
+export const dashboard = reactive<{ selected: string | undefined }>({
+    selected: undefined
 })

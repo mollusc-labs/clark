@@ -242,6 +242,7 @@ sub startup ($self) {
     $authorized_router->get('/api/logs/today')->to('log#today')->name('today_log');
     $authorized_router->get('/api/logs/count')->to('log#count')->name('count_log');
     $authorized_router->get('/api/logs/services')->to('log#service_names')->name('service_names_log');
+    $authorized_router->get('/api/logs/hosts')->to('log#hostnames')->name('hostnames_log');
     ## Dashboard routes
     $authorized_router->get('/api/dashboards')->to('dashboard#find')->name('find_dashboard');
     ## API Key routes

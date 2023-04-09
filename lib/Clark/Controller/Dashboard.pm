@@ -31,7 +31,7 @@ sub find {
     my $self = shift;
     my $id   = $self->session('user');
 
-    my $dashboards = Clark::Util::Inflate->many( $self->dashboard_repository->search( { owner => $id } ) );
+    my $dashboards = Clark::Util::Inflate->many( $self->dashboard_repository->search( { owner => $id }, { columns => [qw[id name query]] } ) );
     $self->render( json => $dashboards );
 }
 

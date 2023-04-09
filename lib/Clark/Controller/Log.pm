@@ -92,4 +92,10 @@ sub service_names {
     return $self->render( json => \@names );
 }
 
+sub hostnames {
+    my $self  = shift;
+    my @names = map { $_->get_column('hostname') } $self->log_repository->search( {}, { columns => [qw/hostname/], distinct => 1 } );
+    return $self->render( json => \@names );
+}
+
 1;

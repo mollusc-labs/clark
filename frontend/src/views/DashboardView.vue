@@ -8,6 +8,9 @@ import type { Log } from '@/lib/model/log'
 import { watch } from 'vue'
 import { ref } from 'vue'
 import TimeGraph from '@/components/logging/TimeGraph.vue'
+import { get } from '@/lib/util/http'
+import type { Query } from '@/lib/model/query'
+import { severityMap } from '@/lib/util/severityTranslation'
 
 const realtime = ref(false)
 const interval = ref();
@@ -18,45 +21,46 @@ const state = reactive({
   latestLogDate: time(),
   loading: true,
   service_names: [] as string[],
+  hostnames: [] as string[],
+})
 
-  size: null,
-  service_name: null,
-  text: null,
-  hostname: null,
-
+const query = reactive<Query>({
+  size: 100,
+  service_name: undefined,
+  text: undefined,
+  hostname: undefined,
+  process_id: undefined,
+  date: undefined,
+  severity: undefined
 })
 
 const update = () => {
   state.loading = true;
   Promise.all([
-    fetch('/api/logs' + dashboard.selected) // Apply query params
-      .then(res => {
-        return res.json()
-      })
-      .then((json: Log[]) => {
-        state.logs = json
-        state.loading = false;
-      })
-      .catch(() => console.error('Something went wrong loading logs')),
-    fetch('/api/logs/services')
-      .then(res => {
-        return res.json()
-      })
-      .then((json: string[]) => {
-        state.service_names = json;
-      })
-      .catch(console.error)
-  ])
+    get<Log[]>('/api/logs' + dashboard.selected),
+    get<string[]>('/api/logs/services'),
+    get<string[]>('/api/logs/hosts')
+  ]).then(([logs, services, hosts]) => {
+    state.logs = logs
+    state.service_names = services.filter(t => t)
+    state.hostnames = hosts
+    state.loading = false
+  }).catch(console.error)
 }
 
-const getLogs = () => {
-  if (!state.logs.length) {
-    update()
-  }
+const updateQuery = () => {
+  const q = Object.keys(query).map(key => {
+    if (query[key]) {
+
+    }
+  }).join('&');
+
 }
 
-const getServiceNames = () => {
-
+const reset = () => {
+  query.process_id = '';
+  query.hostname = '';
+  updateQuery()
 }
 
 const realtimeUpdateSocket = (message: any) => {
@@ -67,7 +71,7 @@ const realtimeUpdateSocket = (message: any) => {
 
   const logs: Log[] = [...state.logs, ...newLogs];
 
-  if (logs.length > state.logs.length) {
+  if (logs.length >= state.logs.length) {
     state.logs = logs.slice(logs.length - state.logs.length, logs.length)
   } else {
     state.logs = logs
@@ -89,7 +93,7 @@ const realtimeCancel = () => {
   clearInterval(interval.value);
 }
 
-onMounted(getLogs);
+onMounted(update);
 watch(realtime, (value, old) => {
   if (value) {
     realtimeUpdate()
@@ -97,21 +101,49 @@ watch(realtime, (value, old) => {
     realtimeCancel()
   }
 })
+
+watch(() => dashboard.selected, (value, old) => {
+  if (value) {
+    update()
+  }
+})
 </script>
 
 <template>
   <v-card title="Filters and Options">
-    <v-content v-if="!state.loading">
-      <v-row>
-        <v-col>
-          <v-switch label="Real-time Updates" v-model="realtime" color="blue"></v-switch>
-          <v-autocomplete :items="state.service_names" v-model="state.service_name" density="compact"
-            label="Service Name"></v-autocomplete>
-        </v-col>
-      </v-row>
-    </v-content>
-    <v-content v-if="state.loading">
-
+    <v-content>
+      <v-container>
+        <v-switch @click.stop label="Real-time updates" v-model="realtime" color="blue"></v-switch>
+        <v-row>
+          <v-col cols="16" md="2">
+            <v-autocomplete :items="state.service_names" v-model="query.service_name" density="compact"
+              label="Service Name"></v-autocomplete>
+          </v-col>
+          <v-col cols="16" md="2">
+            <v-autocomplete :items="state.hostnames" v-model="query.hostname" density="compact"
+              label="Hostname"></v-autocomplete>
+          </v-col>
+          <v-col cols="16" md="2">
+            <v-text-field density="compact" v-model="query.process_id" label="Process ID"></v-text-field>
+          </v-col>
+          <v-col cols="16" md="2">
+            <v-autocomplete density="compact" :items="[...severityMap].map(t => t[1])" v-model="query.process_id"
+              label="Severity"></v-autocomplete>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="16" md="4">
+            <v-text-field label="Search" density="compact"></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-btn color="primary" class="mr-2" @click="() => updateQuery()">Query</v-btn>
+            <v-btn color="teal" class="mr-2">Save</v-btn>
+            <v-btn>Reset</v-btn>
+          </v-col>
+        </v-row>
+      </v-container>
     </v-content>
   </v-card>
   <v-card class="mb-2">
@@ -119,5 +151,5 @@ watch(realtime, (value, old) => {
       <TimeGraph :logs="state.logs" :loading="state.loading"></TimeGraph>
     </v-content>
   </v-card>
-  <Table class="flex-grow" :page-func="update" :loading="state.loading" :logs="state.logs"></Table>
+  <Table class="flex-grow" :loading="state.loading" :logs="state.logs"></Table>
 </template>

@@ -1,6 +1,6 @@
 import type { Severity } from "../model/severity"
 
-const severityMap = new Map<Severity, string>([
+export const severityMap = new Map<Severity, string>([
     [0, "Emerg"],
     [1, "Alert"],
     [2, "Crit"],
@@ -13,4 +13,12 @@ const severityMap = new Map<Severity, string>([
 
 export function translateSeverity(severity: Severity): string {
     return severityMap.get(severity) || 'Unknown'
+}
+
+export function untranslateSeverity(str: string): Severity {
+    severityMap.forEach(([i, k]) => {
+        if (k === str) return i;
+    })
+
+    return 0;
 }
