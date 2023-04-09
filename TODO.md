@@ -7,6 +7,8 @@
 - Create new users [ ]
 - API Keys for REST [ ]
 - Filtering logs [ ]
+- Customizable dashboards
 
-## 1.0.0
+## Iteration 2
+- Fix weird warn for Odd number of elements in Log result set [ ]
 - Dashboards should be modular, stored in the database and user specific [ ]

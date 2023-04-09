@@ -7,11 +7,11 @@ use v5.36;
 
 sub many {
     shift;
-    return [
-        map( {
-                { $_->get_inflated_columns }
-        } @_ )
-    ];
+    my @a = map( {
+            { $_->get_inflated_columns }
+    } @_ );
+
+    return \@a;
 }
 
 1;

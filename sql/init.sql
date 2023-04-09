@@ -40,10 +40,15 @@ CREATE TABLE IF NOT EXISTS api_key (
 
 CREATE TABLE IF NOT EXISTS dashboard (
     id VARCHAR(36) DEFAULT (UUID()) PRIMARY KEY,
-    name VARCHAR NOT NULL,
-    query VARCHAR NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    query VARCHAR(1000) NOT NULL,
     owner VARCHAR(36) NOT NULL,
     CONSTRAINT owner_fk FOREIGN KEY (owner) REFERENCES user(id)
 );
+
+CREATE TRIGGER ins_default_query AFTER INSERT ON user
+FOR EACH ROW
+    INSERT INTO dashboard (name, query, owner)
+    VALUES ('Overview', '?size=100', NEW.id);
 
 COMMIT;

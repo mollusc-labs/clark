@@ -13,35 +13,41 @@ sub by_params {
     my $self = shift;
     my $args = {@_};
 
-    my $size = $args->{'size'} || 10;
-    my $page = $args->{'page'} || 1;
+    my $size = $args->{'size'};
+    my $page = $args->{'page'};
 
-    if ( looks_like_number $page ) {
-        delete $args->{'page'};
-    }
+    $size = 10 unless looks_like_number $size;
+    $page = 1  unless looks_like_number $page;
 
-    if ( looks_like_number $size ) {
-        delete $args->{'size'};
-    }
+    delete $args->{'page'};
+    delete $args->{'size'};
 
-    if ( scalar %{$args} ) {
-        return $self->latest($size)->search(
-            $args,
-            {   page => $page,
-                rows => $size,
-                { order_by => { -desc => 'created_at' } }
+    if ( $args->{'text'} ) {
+
+        # Custom full-text search for text fields: message, service_name and hostname
+        return $self->result_source->storage->dbh_do(
+            sub {
+                my $s    = shift;
+                my $d    = shift;
+                my $rows = $d->selectall_arrayref(
+                    qq[
+                    SELECT * FROM log WHERE MATCH (message, service_name, hostname) 
+                    AGAINST (?) ORDER BY created_at DESC LIMIT ?
+                ], { Slice => {} }, $args->{'text'}, $size
+                );
+
+                return map { $self->new_result($_) } @{$rows};
             }
         );
     }
-    else {
-        return $self->latest($size)->search(
-            {},
-            {   page => $page,
-                rows => $size,
-                { order_by => { -desc => 'created_at' } }
-            }
-        );
-    }
+
+    return $self->latest($size)->search(
+        $args,
+        {   page => $page,
+            rows => $size,
+            { order_by => { -desc => 'created_at' } }
+        }
+    );
 }
 
 sub by_service {

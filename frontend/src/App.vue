@@ -5,16 +5,14 @@ import { onMounted } from 'vue'
 import { redirectToLogin } from './lib/util/redirect'
 import type { User } from './lib/model/user'
 import type { Dashboard } from './lib/model/dashboard'
+import type { Log } from './lib/model/log'
 
 const DEFAULT_DASHBOARD: string = 'default'
 
-const state = reactive<{ dashboards: Dashboard[], selectedDashboard: string }>({
+const state = reactive<{ dashboards: Dashboard[], selectedDashboard: string, loading: boolean }>({
   selectedDashboard: DEFAULT_DASHBOARD,
-  dashboards: [{
-    id: DEFAULT_DASHBOARD,
-    name: 'Latest',
-    query: '?size=100'
-  }]
+  dashboards: [],
+  loading: true
 })
 
 const selectDashboard = ({ query, id }: Dashboard) => {
@@ -23,16 +21,28 @@ const selectDashboard = ({ query, id }: Dashboard) => {
 }
 
 onMounted(() => {
-  selectDashboard(state.dashboards[0]);
-  fetch('/api/users/identify')
-    .then(res => {
-      return res.json()
-    })
-    .then((json: User) => {
-      user.is_admin = json.is_admin ? true : false // is_admin is 0 or 1
-      user.name = json.name
-    })
-    .catch(redirectToLogin)
+  Promise.all([
+    fetch('/api/users/identify')
+      .then(res => {
+        return res.json()
+      })
+      .then((json: User) => {
+        user.is_admin = json.is_admin ? true : false // is_admin is 0 or 1
+        user.name = json.name
+      })
+      .catch(redirectToLogin),
+    fetch('/api/dashboards')
+      .then(res => {
+        return res.json()
+      })
+      .then((json: Dashboard[]) => {
+        state.dashboards = json;
+        if (state.dashboards.length)
+          dashboard.selected = state.dashboards[0].query;
+        state.loading = false;
+      })
+      .catch(console.error)
+  ])
 })
 </script>
 
@@ -44,7 +54,8 @@ onMounted(() => {
           <v-list-item>{{ user.name }}'s Dashboards</v-list-item>
           <v-list class="overflow-y-auto" style="max-height: 80vh">
             <v-list-item v-for="db in state.dashboards" @click="() => selectDashboard(db)" :title="db.name"
-              :value="db.query" :active="state.selectedDashboard === db.id"></v-list-item>
+              :value="db.query" :active="state.selectedDashboard === db.id"
+              class="text-semibold overflow-ellipsis"></v-list-item>
           </v-list>
           <v-list-item class="align-center justify-center">
             <div class="m-3">
@@ -68,8 +79,11 @@ onMounted(() => {
         </v-list>
       </v-navigation-drawer>
       <v-main>
-        <v-container class="w-fill h-screen align-center m-0" fluid>
+        <v-container v-if="!state.loading" class="w-fill h-screen align-center m-0" fluid>
           <RouterView />
+        </v-container>
+        <v-container v-if="state.loading">
+          <v-spinner></v-spinner>
         </v-container>
       </v-main>
     </v-layout>

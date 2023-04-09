@@ -28,17 +28,17 @@ const clicked = (value: string) => {
 }
 </script>
 <template>
-    <v-card class="mt-2 p0" max-height="calc(100% - 9vh)">
+    <v-card class="mt-2 p0">
         <v-content height="inherit">
             <v-data-table @click:row="clicked" class="elevation-1" :loading="props.loading" :headers="headers"
                 :items="props.logs" items-per-page="15" fixed-header fixed-footer v-model:expanded="state.expanded"
-                show-expand height="82vh">
+                show-expand height="calc(100vh - (200px + 10vw))">
                 <template v-slot:header="{ props }">
                     <th v-for="head in props.headers" class="font-bold">{{ head.text }}</th>
                 </template>
                 <template @click.stop v-slot:item.severity="{ item }">
-                    <v-chip :color="getColor(item.raw.severity)" class="w-100">
-                        <div class="w-100 text-center">{{ translateSeverity(item.raw.severity) }}</div>
+                    <v-chip :color="getColor(item.raw.severity)" class="w-full">
+                        <div class="w-full text-center">{{ translateSeverity(item.raw.severity) }}</div>
                     </v-chip>
                 </template>
                 <template @click.stop v-slot:expanded-row="{ columns, item }">

@@ -9,8 +9,6 @@ import { watch } from 'vue'
 import { ref } from 'vue'
 import TimeGraph from '@/components/logging/TimeGraph.vue'
 
-const SIZE = 100
-
 const realtime = ref(false)
 const interval = ref();
 
@@ -18,26 +16,47 @@ const state = reactive({
   matcher: "",
   logs: [] as Log[],
   latestLogDate: time(),
-  loading: true
+  loading: true,
+  service_names: [] as string[],
+
+  size: null,
+  service_name: null,
+  text: null,
+  hostname: null,
+
 })
 
 const update = () => {
   state.loading = true;
-  fetch('/api/logs' + dashboard.selected) // Apply query params
-    .then(res => {
-      return res.json()
-    })
-    .then((json: Log[]) => {
-      state.logs = json
-      state.loading = false;
-    })
-    .catch(() => console.error('Something went wrong loading logs'))
+  Promise.all([
+    fetch('/api/logs' + dashboard.selected) // Apply query params
+      .then(res => {
+        return res.json()
+      })
+      .then((json: Log[]) => {
+        state.logs = json
+        state.loading = false;
+      })
+      .catch(() => console.error('Something went wrong loading logs')),
+    fetch('/api/logs/services')
+      .then(res => {
+        return res.json()
+      })
+      .then((json: string[]) => {
+        state.service_names = json;
+      })
+      .catch(console.error)
+  ])
 }
 
 const getLogs = () => {
   if (!state.logs.length) {
     update()
   }
+}
+
+const getServiceNames = () => {
+
 }
 
 const realtimeUpdateSocket = (message: any) => {
@@ -81,15 +100,24 @@ watch(realtime, (value, old) => {
 </script>
 
 <template>
+  <v-card title="Filters and Options">
+    <v-content v-if="!state.loading">
+      <v-row>
+        <v-col>
+          <v-switch label="Real-time Updates" v-model="realtime" color="blue"></v-switch>
+          <v-autocomplete :items="state.service_names" v-model="state.service_name" density="compact"
+            label="Service Name"></v-autocomplete>
+        </v-col>
+      </v-row>
+    </v-content>
+    <v-content v-if="state.loading">
+
+    </v-content>
+  </v-card>
   <v-card class="mb-2">
     <v-content>
       <TimeGraph :logs="state.logs" :loading="state.loading"></TimeGraph>
     </v-content>
   </v-card>
-  <v-card>
-    <v-content>
-      <v-switch label="Real-time Updates" v-model="realtime" color="blue"></v-switch>
-    </v-content>
-  </v-card>
-  <Table :page-func="update" :loading="state.loading" :logs="state.logs"></Table>
+  <Table class="flex-grow" :page-func="update" :loading="state.loading" :logs="state.logs"></Table>
 </template>

@@ -6,6 +6,6 @@ export const user = reactive<User>({
     is_admin: false
 })
 
-export const dashboard = reactive({
-    selected: '?size=100'
+export const dashboard = reactive<{ selected: string | null }>({
+    selected: null
 })

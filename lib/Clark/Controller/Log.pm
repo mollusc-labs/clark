@@ -86,4 +86,10 @@ sub create {
     $self->render( status => 201, json => { $log->get_inflated_columns } );
 }
 
+sub service_names {
+    my $self  = shift;
+    my @names = map { $_->get_column('service_name') } $self->log_repository->search( {}, { columns => [qw/service_name/], distinct => 1 } );
+    return $self->render( json => \@names );
+}
+
 1;
