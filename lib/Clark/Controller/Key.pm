@@ -5,6 +5,7 @@ use warnings;
 use Crypt::JWT qw(encode_jwt);
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
+# TODO: Add validation here via validator
 sub create {
     my $self    = shift;
     my $uid     = $self->session('user');

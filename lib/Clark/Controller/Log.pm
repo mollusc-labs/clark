@@ -70,6 +70,7 @@ sub today {
     return $self->render( json => [ Clark::Util::Inflate->many( $self->log_repository->today( $self->req->param('service_name') ) ) ] );
 }
 
+# TODO: Add validation here via validator
 sub create {
     my $self = shift;
     my $json = { $self->req->json->to_hash };

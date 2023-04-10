@@ -37,6 +37,7 @@ sub create {
     return $self->render( json => { $db->get_inflated_columns( [qw[name query owner]] ) } );
 }
 
+# TODO: Make me
 sub update {
 
 }

@@ -5,6 +5,7 @@ use strict;
 use JSON::Validator;
 use Mojo::Base -base;
 
+# TODO: Convert to JOI
 has schema => sub {
     return {
         type       => 'object',
