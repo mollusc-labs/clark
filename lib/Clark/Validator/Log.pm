@@ -11,7 +11,7 @@ has validator => sub {
     my $validator = JSON::Validator->new;
     $validator->schema(
         joi->object->props(
-            {   severity     => joi->string->required->minimum(0)->maximum(7),
+            {   severity     => joi->integer->required->min(0)->max(7),
                 service_name => joi->string->required,
                 message      => joi->string->required
             }
@@ -21,9 +21,8 @@ has validator => sub {
 
 sub validate {
     my $self      = shift;
-    my $validator = JSON::Validator->new;
-    $validator->schema( $self->schema );
-    my @errors = $validator->validate(pop);
+    my $validator = $self->validator;
+    my @errors    = $validator->validate(pop);
     return \@errors;
 }
 

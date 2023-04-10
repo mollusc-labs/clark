@@ -11,9 +11,9 @@ has validator => sub {
     my $validator = JSON::Validator->new;
     $validator->schema(
         joi->object->props(
-            {   query => joi->string->required,
+            {   query => joi->string->required->regex("^\\?."),
                 name  => joi->string->required,
-                owner => joi->string->required
+                owner => joi->string->required->length(36)
             }
         )
     );
