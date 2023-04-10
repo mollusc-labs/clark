@@ -8,20 +8,25 @@ import type { Log } from '@/lib/model/log'
 import { watch } from 'vue'
 import { ref } from 'vue'
 import TimeGraph from '@/components/logging/TimeGraph.vue'
-import { get } from '@/lib/util/http'
+import { get, post } from '@/lib/util/http'
 import type { Query } from '@/lib/model/query'
-import { severityMap } from '@/lib/util/severityTranslation'
+import { severityMap, invertedSeverityMap } from '@/lib/util/severityTranslation'
+import type { Dashboard } from '@/lib/model/dashboard'
+import { user } from '@/lib/util/store'
 
 const realtime = ref(false)
 const interval = ref();
+const temp_severity = ref('Any');
+
+const severities = [[undefined, 'Any'], ...severityMap].map(t => t[1]);
 
 const state = reactive({
-  matcher: "",
   logs: [] as Log[],
   latestLogDate: time(),
   loading: true,
   service_names: [] as string[],
   hostnames: [] as string[],
+  saving: false
 })
 
 const query = reactive<Query>({
@@ -45,21 +50,28 @@ const update = () => {
     state.service_names = services.filter(t => t)
     state.hostnames = hosts
     state.loading = false
-  }).catch(console.error)
+  })
+}
+
+const generateQuery = () => {
+  return ((Object.keys(query) as Array<keyof Query>)
+    .filter(k => query[k]) as Array<keyof Query>)
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(query[key] as string)}`
+    ).join('&')
 }
 
 const updateQuery = () => {
-  const q = Object.keys(query).map(key => {
-    if (query[key]) {
-
-    }
-  }).join('&');
-
+  const q = generateQuery()
+  if (q !== dashboard.selected)
+    dashboard.selected = '?' + q
 }
 
 const reset = () => {
-  query.process_id = '';
-  query.hostname = '';
+  query.process_id = undefined
+  query.service_name = undefined
+  query.hostname = undefined
+  query.severity = undefined
+  query.text = undefined
   updateQuery()
 }
 
@@ -81,16 +93,20 @@ const realtimeUpdateSocket = (message: any) => {
 const realtimeUpdate = () => {
   latestLogWebSocket.addEventListener('message', realtimeUpdateSocket, false)
   interval.value = setInterval(() => {
-    if (!state.loading) {
-      latestLogWebSocket.send(JSON.stringify({ date: state.latestLogDate }))
-      state.latestLogDate = time()
-    }
+    update()
   }, 2500)
 }
 
 const realtimeCancel = () => {
   latestLogWebSocket.removeEventListener('message', realtimeUpdateSocket, false)
   clearInterval(interval.value);
+}
+
+const saveDashboard = () => {
+  post<Dashboard>('/api/dashboards', { name: 'dashboard', query: '?' + generateQuery() })
+    .then(dash => {
+      console.log(dash)
+    })
 }
 
 onMounted(update);
@@ -107,6 +123,10 @@ watch(() => dashboard.selected, (value, old) => {
     update()
   }
 })
+
+watch(temp_severity, (val, old) => {
+  query.severity = invertedSeverityMap.get(val);
+})
 </script>
 
 <template>
@@ -117,8 +137,7 @@ watch(() => dashboard.selected, (value, old) => {
         <v-row>
           <v-col cols="16" md="2">
             <v-autocomplete :items="state.service_names" v-model="query.service_name" density="compact"
-              label="Service Name"></v-autocomplete>
-          </v-col>
+              label="Service Name"></v-autocomplete> </v-col>
           <v-col cols="16" md="2">
             <v-autocomplete :items="state.hostnames" v-model="query.hostname" density="compact"
               label="Hostname"></v-autocomplete>
@@ -127,20 +146,20 @@ watch(() => dashboard.selected, (value, old) => {
             <v-text-field density="compact" v-model="query.process_id" label="Process ID"></v-text-field>
           </v-col>
           <v-col cols="16" md="2">
-            <v-autocomplete density="compact" :items="[...severityMap].map(t => t[1])" v-model="query.process_id"
-              label="Severity"></v-autocomplete>
+            <v-select density="compact" item-text="name" item-value="severity" :items="severities" v-model="temp_severity"
+              label="Severity"></v-select>
           </v-col>
         </v-row>
         <v-row>
           <v-col cols="16" md="4">
-            <v-text-field label="Search" density="compact"></v-text-field>
+            <v-text-field label="Search" density="compact" v-model="query.text"></v-text-field>
           </v-col>
         </v-row>
         <v-row>
           <v-col>
             <v-btn color="primary" class="mr-2" @click="() => updateQuery()">Query</v-btn>
-            <v-btn color="teal" class="mr-2">Save</v-btn>
-            <v-btn>Reset</v-btn>
+            <v-btn color="teal" class="mr-2" @click="() => saveDashboard()">Save</v-btn>
+            <v-btn @click="() => reset()">Reset</v-btn>
           </v-col>
         </v-row>
       </v-container>

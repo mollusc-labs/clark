@@ -27,13 +27,17 @@ sub by_params {
         # Custom full-text search for text fields: message, service_name and hostname
         return $self->result_source->storage->dbh_do(
             sub {
-                my $s    = shift;
-                my $d    = shift;
+                my $s = shift;
+                my $d = shift;
+                my $t = $args->{'text'};
+                delete $args->{'text'};
+
+                my $q    = join ' ', map {"AND $_ = ?"} ( keys %{$args} );
                 my $rows = $d->selectall_arrayref(
                     qq[
-                    SELECT * FROM log WHERE MATCH (message, service_name, hostname) 
-                    AGAINST (?) ORDER BY created_at DESC LIMIT ?
-                ], { Slice => {} }, $args->{'text'}, $size
+                    SELECT * FROM log WHERE MATCH (message, service_name, hostname)
+                    AGAINST (?) $q ORDER BY created_at DESC LIMIT ?
+                ], { Slice => {} }, values %{$args}, $t, $size
                 );
 
                 return map { $self->new_result($_) } @{$rows};

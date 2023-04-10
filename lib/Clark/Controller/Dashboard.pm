@@ -20,7 +20,21 @@ sub dev {
 
 sub create {
     my $self = shift;
-    my $name = $self->req->json->{'name'} || 'Unnamed Dashboard';
+    my $json = $self->req->json;
+    $json->{'name'} ||= 'Unnamed Dashboard';
+    if ( $json->{'owner'} ) {
+        $json->{'owner'} = $self->session('user') unless $json->{'owner'} eq $self->session('user');
+    }
+    else {
+        $json->{'owner'} = $self->session('user');
+    }
+    my @errors = @{ $self->dashboard_validator->validate($json) };
+    if ( scalar @errors ) {
+        return $self->render( json => { err => 400, msg => 'Invalid JSON supplied' }, status => 400 );
+    }
+
+    my $db = $self->dashboard_repository->create($json);
+    return $self->render( json => { $db->get_inflated_columns( [qw[name query owner]] ) } );
 }
 
 sub update {

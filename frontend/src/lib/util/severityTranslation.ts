@@ -11,6 +11,18 @@ export const severityMap = new Map<Severity, string>([
     [7, "Debug"]
 ]);
 
+export const invertedSeverityMap = new Map<string, Severity | undefined>([
+    ["Emerg", 0],
+    ["Alert", 1],
+    ["Crit", 2],
+    ["Error", 3],
+    ["Warn", 4],
+    ["Notice", 5],
+    ["Info", 6],
+    ["Debug", 7],
+    ["Any", undefined]
+])
+
 export function translateSeverity(severity: Severity): string {
     return severityMap.get(severity) || 'Unknown'
 }

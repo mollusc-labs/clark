@@ -32,7 +32,7 @@ const clicked = (value: string) => {
         <v-content height="inherit">
             <v-data-table @click:row="clicked" class="elevation-1" :loading="props.loading" :headers="headers"
                 :items="props.logs" items-per-page="15" fixed-header fixed-footer v-model:expanded="state.expanded"
-                show-expand height="calc(100vh - (200px + 10vw))">
+                show-expand height="50vh">
                 <template v-slot:header="{ props }">
                     <th v-for="head in props.headers" class="font-bold">{{ head.text }}</th>
                 </template>

@@ -245,6 +245,7 @@ sub startup ($self) {
     $authorized_router->get('/api/logs/hosts')->to('log#hostnames')->name('hostnames_log');
     ## Dashboard routes
     $authorized_router->get('/api/dashboards')->to('dashboard#find')->name('find_dashboard');
+    $authorized_router->post('/api/dashboards')->to('dashboard#create')->name('create_dashboard');
     ## API Key routes
     $authorized_router->post('/api/keys')->to('key#create')->name('create_key');
 
