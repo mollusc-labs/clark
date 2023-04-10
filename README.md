@@ -23,6 +23,20 @@ Clark is packaged as a simple docker-compose setup, allowing for seamless integr
 5. Read `QUICKSTART.md` to figure out what logging configuration works for you!
 6. Happy logging!
 
+## Use in production
+It is highly recommended to place Clark behind a proxy like `NGiNX`, `httpd` or similar, before exposing it to the internet.
+You will also want to ensure that you are using `HTTPS`.
+
+## Troubleshooting
+
+#### Port is closed
+`setup.pl` will configure `rsyslog` to use port `514` for both UDP and TCP traffic, some people may want to change these
+or are simply unable to open these ports. In that case edit `rsyslog.d/remote.conf` to use whatever port you'd like.
+
+#### Firewalls
+If you plan to log over the internet (not recommended outside of the REST API) you will need to open the port specified
+in the `rsyslog.d/remote.conf`, this is defaulted to `514` for both TCP and UDP.
+
 ## Contributing
 Clark is a `Mojolicious` application that uses a `Vue3` frontend. Any and all contributions will be considered!
 Make sure your Perl code follows the `.perltidyrc`'s configuration before you make any pull-requests. Thanks!
