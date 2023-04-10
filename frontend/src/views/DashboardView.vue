@@ -2,7 +2,7 @@
 import { onMounted, reactive } from 'vue'
 import { latestLogWebSocket } from '@/lib/util/webSocket'
 import { time } from '@/lib/util/time'
-import { selectedDashboard } from '@/lib/util/store'
+import { dashboards, selectedDashboard } from '@/lib/util/store'
 import Table from '@/components/logging/Table.vue'
 import type { Log } from '@/lib/model/log'
 import { watch } from 'vue'
@@ -116,10 +116,12 @@ const saveDashboard = () => {
     .then(dash => {
       selectedDashboard.selected = dash.query
       selectedDashboard.id = dash.id
+      dashboards.value.forEach(async t => { if (t.id === dash.id) { t.query = dash.query } })
     })
 }
 
 onMounted(update);
+
 watch(realtime, (value, old) => {
   if (value) {
     realtimeUpdate()
@@ -171,6 +173,9 @@ watch(temp_severity, (val, old) => {
         <v-row>
           <v-col cols="16" md="4">
             <v-text-field label="Search" density="compact" v-model="query.text"></v-text-field>
+          </v-col>
+          <v-col cols="16" md="2">
+            <v-text-field density="compact" v-model="query.size" type="number" label="Query Size"></v-text-field>
           </v-col>
         </v-row>
         <v-row>

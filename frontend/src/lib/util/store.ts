@@ -1,6 +1,6 @@
-import { reactive, ref } from 'vue'
-import type { Ref } from 'vue'
+import { reactive } from 'vue'
 import type { User } from '../model/user'
+import type { Dashboard } from '../model/dashboard'
 
 export const user = reactive<User>({
     name: 'unknown',
@@ -12,6 +12,9 @@ export const selectedDashboard = reactive<{ selected: string | undefined, id: st
     id: undefined
 })
 
+export const dashboards = reactive<{ value: Dashboard[] }>({
+    value: []
+})
 
 export const error = reactive<{ value: any | undefined }>({
     value: undefined

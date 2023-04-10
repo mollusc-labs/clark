@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS dashboard (
     name VARCHAR(50) NOT NULL,
     query VARCHAR(1000) NOT NULL,
     owner VARCHAR(36) NOT NULL,
+    created_at DATETIME DEFAULT NOW(),
     CONSTRAINT owner_fk FOREIGN KEY (owner) REFERENCES user(id)
 );
 

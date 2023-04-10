@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
-import { selectedDashboard, user } from '@/lib/util/store'
+import { reactive } from 'vue'
+import { selectedDashboard, user, dashboards } from '@/lib/util/store'
 import { onMounted } from 'vue'
 import { redirectToLogin } from './lib/util/redirect'
 import type { User } from './lib/model/user'
@@ -9,8 +9,7 @@ import { get, post } from './lib/util/http'
 
 const DEFAULT_DASHBOARD: string = 'default'
 
-const state = reactive<{ dashboards: Dashboard[], loading: boolean, addDashboardDisabled: boolean }>({
-  dashboards: [],
+const state = reactive<{ loading: boolean, addDashboardDisabled: boolean }>({
   loading: true,
   addDashboardDisabled: false
 })
@@ -28,7 +27,7 @@ const newDashboard = () => {
       query: '?size=100'
     } as Dashboard)
       .then((json: Dashboard) => {
-        state.dashboards.push(json)
+        dashboards.value.push(json)
         selectedDashboard.id = json.id
         selectedDashboard.selected = json.query
       })
@@ -42,12 +41,12 @@ onMounted(() => {
   Promise.all([
     get<User>('/api/users/identify').then(t => { if (t) return t; else throw Error() }),
     get<Dashboard[]>('/api/dashboards')
-  ]).then(([identified, dashboards]) => {
+  ]).then(([identified, dbs]) => {
     user.is_admin = identified.is_admin ? true : false // is_admin is 0 or 1
     user.name = identified.name
-    state.dashboards = dashboards
-    if (state.dashboards.length) {
-      selectDashboard(dashboards[0])
+    dashboards.value = dbs
+    if (dashboards.value.length) {
+      selectDashboard(dashboards.value[0])
     }
     state.loading = false;
   }).catch(redirectToLogin)
@@ -62,7 +61,7 @@ onMounted(() => {
           <v-list-item>{{ user.name }}'s Dashboards</v-list-item>
           <v-list-item v-if="!state.loading">
             <v-list class="overflow-y-auto" style="max-height: 80vh">
-              <v-list-item v-for="db in state.dashboards" @click="() => selectDashboard(db)" :title="db.name"
+              <v-list-item v-for="db in dashboards.value" @click="() => selectDashboard(db)" :title="db.name"
                 :value="db.query" :active="selectedDashboard.id === db.id"
                 class="text-semibold overflow-ellipsis"></v-list-item>
             </v-list>

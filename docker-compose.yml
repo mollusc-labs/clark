@@ -14,6 +14,12 @@ services:
       - clark_net
     environment:
       - CLARK_PRODUCTION=1
+    restart: 'on-failure:5'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:514"
+        tag: "{{.Name}}"
 
   clark_database:
     image: mysql:latest

@@ -19,7 +19,7 @@ __PACKAGE__->add_columns(
         data_type => 'varchar',
         size      => 36
     },
-    qw/ name query /
+    qw/name query created_at /
 );
 __PACKAGE__->set_primary_key('id');
 
