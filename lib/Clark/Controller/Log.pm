@@ -98,7 +98,6 @@ sub today {
     );
 }
 
-# TODO: Add validation here via validator
 sub create {
     my $self = shift;
     my $json = { $self->req->json->to_hash };
@@ -114,7 +113,7 @@ sub create {
     $json->{'hostname'}   = 'rest' unless $json->{'hostname'};
     $json->{'process_id'} = 'rest' unless $json->{'process_id'};
 
-    my $log = $self->log_repository->create($json);
+    my $log = $self->log_repository->new_result($json)->insert;
     $self->render( status => 201, json => { $log->get_inflated_columns } );
 }
 

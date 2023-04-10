@@ -41,6 +41,11 @@ in the `rsyslog.d/remote.conf`, this is defaulted to `514` for both TCP and UDP.
 Clark is a `Mojolicious` application that uses a `Vue3` frontend. Any and all contributions will be considered!
 Make sure your Perl code follows the `.perltidyrc`'s configuration before you make any pull-requests. Thanks!
 
+#### How to run in development
+Run `docker-compose up -d clark_database` and `setup.pl`, then install all of the CPAN dependencies listed in the `cpanfile`.
+
+Now you can run the frontend with `cd frontend && yarn dev`, and the backend with `./dev.sh`.
+
 ## License
 Clark is licensed under the `BSD-3 Clause` license, to learn more, please view the `LICENSE` file at the root of
 the project.

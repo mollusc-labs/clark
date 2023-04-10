@@ -7,6 +7,7 @@ use Data::Dumper;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 use Clark::Util::Inflate;
 
+#| This renders the Vue app as an index
 sub index {
     my $self = shift;
     return $self->render;
@@ -38,7 +39,6 @@ sub create {
         json => { $db->get_inflated_columns( [qw[name query owner]] ) } );
 }
 
-# TODO: Make me
 sub update {
     my $self = shift;
     my $json = $self->req->json;

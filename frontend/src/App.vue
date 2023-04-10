@@ -1,23 +1,41 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
-import { dashboard, user } from '@/lib/util/store'
+import { reactive, watch } from 'vue'
+import { selectedDashboard, user } from '@/lib/util/store'
 import { onMounted } from 'vue'
 import { redirectToLogin } from './lib/util/redirect'
 import type { User } from './lib/model/user'
 import type { Dashboard } from './lib/model/dashboard'
-import { get } from './lib/util/http'
+import { get, post } from './lib/util/http'
 
 const DEFAULT_DASHBOARD: string = 'default'
 
-const state = reactive<{ dashboards: Dashboard[], selectedDashboard: string, loading: boolean }>({
-  selectedDashboard: DEFAULT_DASHBOARD,
+const state = reactive<{ dashboards: Dashboard[], loading: boolean, addDashboardDisabled: boolean }>({
   dashboards: [],
-  loading: true
+  loading: true,
+  addDashboardDisabled: false
 })
 
 const selectDashboard = ({ query, id }: Dashboard) => {
-  dashboard.selected = query
-  state.selectedDashboard = id
+  selectedDashboard.selected = query
+  selectedDashboard.id = id
+}
+
+const newDashboard = () => {
+  state.addDashboardDisabled = true;
+  try {
+    post<Dashboard>('/api/dashboards', {
+      name: 'New Dashboard',
+      query: '?size=100'
+    } as Dashboard)
+      .then((json: Dashboard) => {
+        state.dashboards.push(json)
+        selectedDashboard.id = json.id
+        selectedDashboard.selected = json.query
+      })
+  } finally {
+    state.addDashboardDisabled = false
+  }
+
 }
 
 onMounted(() => {
@@ -45,7 +63,7 @@ onMounted(() => {
           <v-list-item v-if="!state.loading">
             <v-list class="overflow-y-auto" style="max-height: 80vh">
               <v-list-item v-for="db in state.dashboards" @click="() => selectDashboard(db)" :title="db.name"
-                :value="db.query" :active="state.selectedDashboard === db.id"
+                :value="db.query" :active="selectedDashboard.id === db.id"
                 class="text-semibold overflow-ellipsis"></v-list-item>
             </v-list>
           </v-list-item>
@@ -56,7 +74,8 @@ onMounted(() => {
           </v-list-item>
           <v-list-item class="align-center justify-center" v-if="!state.loading">
             <div class="m-3">
-              <v-btn icon="mdi-plus" class="elevation-1" size="small">
+              <v-btn icon="mdi-plus" class="elevation-1" :disabled="state.addDashboardDisabled" size="small"
+                @click="() => newDashboard()">
                 <v-icon icon="mdi-plus"></v-icon>
                 <v-tooltip activator="parent" location="bottom" text="Add dashboard"></v-tooltip>
               </v-btn>

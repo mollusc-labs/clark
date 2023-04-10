@@ -49,6 +49,6 @@ CREATE TABLE IF NOT EXISTS dashboard (
 CREATE TRIGGER ins_default_query AFTER INSERT ON user
 FOR EACH ROW
     INSERT INTO dashboard (name, query, owner)
-    VALUES ('Overview', '?size=100', NEW.id);
+    VALUES ('Newest 100 Logs', '?size=100', NEW.id);
 
 COMMIT;

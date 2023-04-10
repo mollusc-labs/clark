@@ -7,9 +7,11 @@ export const user = reactive<User>({
     is_admin: false
 })
 
-export const dashboard = reactive<{ selected: string | undefined }>({
-    selected: undefined
+export const selectedDashboard = reactive<{ selected: string | undefined, id: string | undefined }>({
+    selected: undefined,
+    id: undefined
 })
+
 
 export const error = reactive<{ value: any | undefined }>({
     value: undefined

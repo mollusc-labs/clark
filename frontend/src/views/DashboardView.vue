@@ -2,17 +2,16 @@
 import { onMounted, reactive } from 'vue'
 import { latestLogWebSocket } from '@/lib/util/webSocket'
 import { time } from '@/lib/util/time'
-import { dashboard } from '@/lib/util/store'
+import { selectedDashboard } from '@/lib/util/store'
 import Table from '@/components/logging/Table.vue'
 import type { Log } from '@/lib/model/log'
 import { watch } from 'vue'
 import { ref } from 'vue'
 import TimeGraph from '@/components/logging/TimeGraph.vue'
-import { get, post } from '@/lib/util/http'
+import { get, post, put } from '@/lib/util/http'
 import type { Query } from '@/lib/model/query'
 import { severityMap, invertedSeverityMap } from '@/lib/util/severityTranslation'
 import type { Dashboard } from '@/lib/model/dashboard'
-import { user } from '@/lib/util/store'
 
 const realtime = ref(false)
 const interval = ref();
@@ -42,7 +41,7 @@ const query = reactive<Query>({
 const update = () => {
   state.loading = true;
   Promise.all([
-    get<Log[]>('/api/logs' + dashboard.selected),
+    get<Log[]>('/api/logs' + selectedDashboard.selected),
     get<string[]>('/api/logs/services'),
     get<string[]>('/api/logs/hosts')
   ]).then(([logs, services, hosts]) => {
@@ -60,10 +59,20 @@ const generateQuery = () => {
     ).join('&')
 }
 
+const degenerateQuery = () => {
+  const keys = [...new URLSearchParams(selectedDashboard.selected).entries()] as Array<[string, any]>;
+  return keys.reduce((acc, [key, val]) => {
+    if (key in query) {
+      acc[key as keyof Query] = val;
+    }
+    return acc;
+  }, {} as Query);
+}
+
 const updateQuery = () => {
   const q = generateQuery()
-  if (q !== dashboard.selected)
-    dashboard.selected = '?' + q
+  if (q !== selectedDashboard.selected)
+    selectedDashboard.selected = '?' + q
 }
 
 const reset = () => {
@@ -72,7 +81,7 @@ const reset = () => {
   query.hostname = undefined
   query.severity = undefined
   query.text = undefined
-  updateQuery()
+  query.date = undefined
 }
 
 const realtimeUpdateSocket = (message: any) => {
@@ -103,9 +112,10 @@ const realtimeCancel = () => {
 }
 
 const saveDashboard = () => {
-  post<Dashboard>('/api/dashboards', { name: 'dashboard', query: '?' + generateQuery() })
+  put<Dashboard>(`/api/dashboards/${selectedDashboard.id}`, { name: 'dashboard', query: '?' + generateQuery() })
     .then(dash => {
-      console.log(dash)
+      selectedDashboard.selected = dash.query
+      selectedDashboard.id = dash.id
     })
 }
 
@@ -118,9 +128,17 @@ watch(realtime, (value, old) => {
   }
 })
 
-watch(() => dashboard.selected, (value, old) => {
+watch(() => selectedDashboard.selected, (value, old) => {
   if (value) {
     update()
+    const newQuery: Query = degenerateQuery();
+    query.date = newQuery.date;
+    query.hostname = newQuery.hostname;
+    query.process_id = newQuery.process_id;
+    query.service_name = newQuery.service_name;
+    query.severity = newQuery.severity;
+    query.size = newQuery.size;
+    query.text = newQuery.text;
   }
 })
 
@@ -159,7 +177,7 @@ watch(temp_severity, (val, old) => {
           <v-col>
             <v-btn color="primary" class="mr-2" @click="() => updateQuery()">Query</v-btn>
             <v-btn color="teal" class="mr-2" @click="() => saveDashboard()">Save</v-btn>
-            <v-btn @click="() => reset()">Reset</v-btn>
+            <v-btn @click="() => { reset(); updateQuery() }">Reset</v-btn>
           </v-col>
         </v-row>
       </v-container>

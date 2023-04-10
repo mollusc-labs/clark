@@ -1,5 +1,3 @@
 % layout 'vue';
-% use Mojo::JSON qw(encode_json);
-% my $user = encode_json(stash 'user');
 <input type="hidden" id="user" value="<%= $user %>"/>
 <div id="app"></div>
