@@ -37,25 +37,32 @@ sub login_index ($self) {
 sub login ($self) {
     $self->redirect_to('/dashboard') if ( $self->session('user') );
 
-    $self->session( login_attempts => ( $self->session('login_attempts') || 0 ) + 1 );
+    $self->session(
+        login_attempts => ( $self->session('login_attempts') || 0 ) + 1 );
 
     my $v = $self->validation;
 
     $v->required('name')->size( 1, 100 );
     $v->required('password')->size( 1, ~0 );
-    return $self->stash( err => 400 ) unless $v->has_data && ( not $v->has_error );
+    return $self->stash( err => 400 )
+        unless $v->has_data && ( not $v->has_error );
 
     my $user = $self->req->param('name');
     my $pass = $self->req->param('password');
 
     if ( not( $self->_can_attempt_login ) ) {
         $self->session( last_login_attempt => time );
-        $self->app->log->info("Login attempt for user $user failed due to too many attempts");
-        $self->stash( error => 'You\'ve tried to login too many times recently, try again later' );
+        $self->app->log->info(
+            "Login attempt for user $user failed due to too many attempts");
+        
+        $self->stash( error =>
+                'You\'ve tried to login too many times recently, try again later'
+        );
         return $self->render( status => 429, template => 'clark/index' );
     }
 
-    $self->session( login_attempts => 1 ) if $self->session('login_attempts') >= 3;
+    $self->session( login_attempts => 1 )
+        if $self->session('login_attempts') >= 3;
 
     if ( my $user_model = $self->_try_login( $user, $pass ) ) {
         $self->app->log->info("User $user logged in successfully");

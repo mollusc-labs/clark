@@ -22,7 +22,10 @@ sub create {
             created_by => $uid
         }
         )->get_columns
-        || return $self->render( status => 400, json => { err => 400, msg => 'Bad request' } );
+        || return $self->render(
+        status => 400,
+        json   => { err => 400, msg => 'Bad request' }
+        );
     delete $obj{'id'};
 
     $self->render( status => 201, json => %obj );
@@ -32,7 +35,10 @@ sub delete {
     my $self = shift;
     my $key  = $self->stash('api_key');
     eval { $self->key_repository->delete( { key => $key } ) };
-    return $self->render( status => 404, json => { err => 404, msg => 'Not found' } ) if $@;
+    return $self->render(
+        status => 404,
+        json   => { err => 404, msg => 'Not found' }
+    ) if $@;
     $self->render( status => 204 );
 }
 

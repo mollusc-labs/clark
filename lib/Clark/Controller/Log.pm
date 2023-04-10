@@ -16,11 +16,14 @@ sub _find {
     if (   $params->{'from'}
         && $params->{'to'} )
     {
-        my $from = DateTime->from_epoch( epoch => $params->{'from'} ) || DateTime->from_epoch( epoch => 0 );
-        my $to   = DateTime->from_epoch( epoch => $params->{'to'} )   || DateTime->now;
+        my $from = DateTime->from_epoch( epoch => $params->{'from'} )
+            || DateTime->from_epoch( epoch => 0 );
+        my $to
+            = DateTime->from_epoch( epoch => $params->{'to'} ) || DateTime->now;
         delete $params->{'from'};
         delete $params->{'to'};
-        return $self->log_repository->from_date( $from, $to )->by_params( %{$params} );
+        return $self->log_repository->from_date( $from, $to )
+            ->by_params( %{$params} );
     }
     else {
         delete $params->{'to'};
@@ -35,14 +38,21 @@ sub find {
 }
 
 sub count {
-    my $self  = shift;
-    my $count = $self->_find->search( {}, { '+select' => [ { count => '*', -as => 'total' } ] } ) . get_column('total');
+    my $self = shift;
+    my $count
+        = $self->_find->search( {},
+        { '+select' => [ { count => '*', -as => 'total' } ] } )
+        . get_column('total');
     return $self->render( json => { count => $count } );
 }
 
 sub latest {
     my $self = shift;
-    return $self->render( json => Clark::Util::Inflate->many( $self->log_repository->latest( $self->req->param('count') ) ) );
+    return $self->render(
+        json => Clark::Util::Inflate->many(
+            $self->log_repository->latest( $self->req->param('count') )
+        )
+    );
 }
 
 sub latest_ws {
@@ -54,20 +64,38 @@ sub latest_ws {
             my ( $c, $msg ) = @_;
             my $req = decode_json $msg;
             unless ( $req->{'date'} ) {
-                $self->app->log->info( 'Got bad body from web-socket: ' . $msg );
+                $self->app->log->info(
+                    'Got bad body from web-socket: ' . $msg );
                 $c->send( encode_json { err => 400, msg => 'Invalid json ' } );
                 return;
             }
 
-            my $date = DateTime->from_epoch( epoch => $req->{'date'} ) || return;
-            $c->send( encode_json( Clark::Util::Inflate->many( $self->log_repository->from_date( $date, DateTime->now, 100 ) ) ) );
+            my $date
+                = DateTime->from_epoch( epoch => $req->{'date'} ) || return;
+            $c->send(
+                encode_json(
+                    Clark::Util::Inflate->many(
+                        $self->log_repository->from_date(
+                            $date, DateTime->now, 100
+                        )
+                    )
+                )
+            );
         }
     );
 }
 
 sub today {
     my $self = shift;
-    return $self->render( json => [ Clark::Util::Inflate->many( $self->log_repository->today( $self->req->param('service_name') ) ) ] );
+    return $self->render(
+        json => [
+            Clark::Util::Inflate->many(
+                $self->log_repository->today(
+                    $self->req->param('service_name')
+                )
+            )
+        ]
+    );
 }
 
 # TODO: Add validation here via validator
@@ -75,9 +103,12 @@ sub create {
     my $self = shift;
     my $json = { $self->req->json->to_hash };
 
-    my @errors = $self->log_validator->validate($json);
+    my @errors = @{ $self->log_validator->validate($json) };
     if ( scalar @errors ) {
-        return $self->render( json => { err => 400, msg => \@errors }, status => 400 );
+        return $self->render(
+            json   => { err => 400, msg => \@errors },
+            status => 400
+        );
     }
 
     $json->{'hostname'}   = 'rest' unless $json->{'hostname'};
@@ -88,14 +119,20 @@ sub create {
 }
 
 sub service_names {
-    my $self  = shift;
-    my @names = map { $_->get_column('service_name') } $self->log_repository->search( {}, { columns => [qw/service_name/], distinct => 1 } );
+    my $self = shift;
+    my @names
+        = map { $_->get_column('service_name') }
+        $self->log_repository->search( {},
+        { columns => [qw/service_name/], distinct => 1 } );
     return $self->render( json => \@names );
 }
 
 sub hostnames {
-    my $self  = shift;
-    my @names = map { $_->get_column('hostname') } $self->log_repository->search( {}, { columns => [qw/hostname/], distinct => 1 } );
+    my $self = shift;
+    my @names
+        = map { $_->get_column('hostname') }
+        $self->log_repository->search( {},
+        { columns => [qw/hostname/], distinct => 1 } );
     return $self->render( json => \@names );
 }
 

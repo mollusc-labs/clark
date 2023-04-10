@@ -3,19 +3,20 @@ package Clark::Validator::Log;
 use warnings;
 use strict;
 use JSON::Validator;
+use JSON::Validator::Joi 'joi';
 use Mojo::Base -base;
 
-# TODO: Convert to JOI
-has schema => sub {
-    return {
-        type       => 'object',
-        required   => [ 'severity', 'service_name', 'message' ],
-        properties => [
-            severity     => { type => 'integer', minimum => 0, maximum => 7 },
-            service_name => { type => 'string' },
-            message      => { type => 'string' }
-        ]
-    };
+has validator => sub {
+    my $self      = shift;
+    my $validator = JSON::Validator->new;
+    $validator->schema(
+        joi->object->props(
+            {   severity     => joi->string->required->minimum(0)->maximum(7),
+                service_name => joi->string->required,
+                message      => joi->string->required
+            }
+        )
+    );
 };
 
 sub validate {
