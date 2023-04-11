@@ -1,6 +1,6 @@
 package Clark::Schema::ResultSet::Key;
 
-use base 'DBIx::Class::ResultSet';
+use parent 'Clark::Schema::Base::ResultSet';
 use DateTime;
 use strict;
 use warnings;

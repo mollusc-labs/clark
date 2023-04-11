@@ -51,6 +51,15 @@ my $c = container 'Clark' => as {
             },
             dependencies => []
         );
+
+        service 'log' => (
+            lifecycle => 'Singleton',
+            block     => sub {
+                require Clark::Validator::Log;
+                return Clark::Validator::Log->new;
+            },
+            dependencies => []
+        );
     };
 };
 
@@ -77,6 +86,8 @@ sub startup ($self) {
     # Other dependencies
     $self->helper( dashboard_validator =>
             sub { return $c->resolve( service => 'Validator/dashboard' ) } );
+    $self->helper( log_validator =>
+            sub { return $c->resolve( service => 'Validator/log' ) } );
 
     state $known_errors = {
         400 => { err => 400, msg => 'Bad Request' },
@@ -196,11 +207,13 @@ sub startup ($self) {
                 }
 
                 my $uid = $c->session('user');
-                if ( my $user
-                    = $dbh->resultset('User')->find( { id => $uid } ) )
+                if (my $user = $dbh->resultset('User')->find(
+                        { id      => $uid },
+                        { columns => [qw/name is_admin last_login/] }
+                    )
+                    )
                 {
                     my %user = $user->get_columns;
-                    delete %user{'password'};
                     $c->stash( user    => \%user );
                     $c->stash( api_key => $api_key );
                 }

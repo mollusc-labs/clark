@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { selectedDashboard, user, dashboards } from '@/lib/util/store'
+import { selectedDashboard, user, dashboards, error } from '@/lib/util/store'
 import { onMounted } from 'vue'
 import { redirectToLogin } from './lib/util/redirect'
 import type { User } from './lib/model/user'
@@ -93,6 +93,7 @@ onMounted(() => {
           </div>
         </v-list>
       </v-navigation-drawer>
+
       <v-main>
         <v-container v-if="!state.loading" class="w-fill h-screen align-center m-0" fluid>
           <RouterView />
@@ -102,6 +103,14 @@ onMounted(() => {
             <v-progress-circular indeterminate color="primary" size="70"></v-progress-circular>
           </center>
         </v-container>
+        <v-snackbar color="dark-red-2" v-model="error.value">
+          {{ error.value }}
+          <template v-slot:actions>
+            <v-btn color="pink" variant="text" @click="error.value = false">
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
       </v-main>
     </v-layout>
   </v-card>

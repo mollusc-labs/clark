@@ -82,6 +82,7 @@ const reset = () => {
   query.severity = undefined
   query.text = undefined
   query.date = undefined
+  query.size = 100
 }
 
 const realtimeUpdateSocket = (message: any) => {
@@ -116,10 +117,16 @@ const saveDashboard = () => {
     .then(dash => {
       selectedDashboard.selected = dash.query
       selectedDashboard.id = dash.id
-      dashboards.value.forEach(async t => { if (t.id === dash.id) { t.query = dash.query } })
+      dashboards.value.forEach(async t => {
+        if (t.id === dash.id) {
+          t.query = dash.query
+          t.name = dash.name
+        }
+      })
     })
 }
 
+// TODO: Don't do this if there is no dashboard selected
 onMounted(update);
 
 watch(realtime, (value, old) => {

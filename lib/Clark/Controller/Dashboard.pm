@@ -35,17 +35,27 @@ sub create {
     }
 
     my $db = $self->dashboard_repository->create($json);
-    return $self->render(
-        json => { $db->get_inflated_columns( [qw[name query owner]] ) } );
+    $self->app->log->info( 'Creating dashboard with ID - ' . $db->id );
+    return $self->render( json => { $db->get_inflated_columns } );
 }
 
 sub update {
     my $self = shift;
     my $json = $self->req->json;
     my $id   = $self->stash('id');
+    my $uid  = $self->session('user');
+
+    return $self->render(
+        json   => { err => 404, msg => 'Not found' },
+        status => 404
+    ) unless my $orig = $self->dashboard_repository->find( { id => $id } );
+
+    return $self->render(
+        json   => { err => 403, msg => 'Unauthorized' },
+        status => 403
+    ) unless $orig->owner eq $uid;
 
     $json->{'name'} ||= 'Unnamed Dashboard';
-    $json->{'owner'} = $self->session('user');
 
     my @errors = @{ $self->dashboard_validator->validate($json) };
     if ( scalar @errors ) {
@@ -55,15 +65,14 @@ sub update {
         );
     }
 
-    my $db
-        = { $self->dashboard_repository->find( { id => $id } )->update($json)
-            ->get_inflated_columns }
-        || undef;
-
     return $self->render(
         json   => { err => 404, msg => 'Not found' },
         status => 404
-    ) unless $db;
+        )
+        unless my $db
+        = { $self->dashboard_repository->find( { id => $id } )->update($json)
+            ->get_inflated_columns };
+
     return $self->render( json => $db );
 }
 

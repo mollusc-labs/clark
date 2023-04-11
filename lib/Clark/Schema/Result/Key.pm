@@ -10,10 +10,10 @@ __PACKAGE__->load_components(qw/InflateColumn::DateTime PK::Auto Core/);
 __PACKAGE__->table('api_key');
 __PACKAGE__->add_columns(
     id => {
-        data_type         => 'varchar',
-        size              => 36,
-        unique            => 1,
-        is_auto_increment => 1
+        data_type => 'varchar',
+        size      => 36,
+        unique    => 1,
+        is_uuid   => 1
     },
     value => {
         data_type => 'varchar',

@@ -1,4 +1,5 @@
 import { error } from "./store"
+import type { ClarkError } from "../model/error";
 
 const httpBodyBase = (method: string) => {
     return (url: string) => (body: any) =>
@@ -11,11 +12,17 @@ const httpBodyBase = (method: string) => {
                 method,
                 body: JSON.stringify(body)
             })
-            .then(t => t.json())
+            .then(async t => {
+                if (t.ok) {
+                    return t.json();
+                } else {
+                    throw await t.json() as ClarkError;
+                }
+            })
             .catch(httpErrorHandler);
 }
 
-export const httpErrorHandler = (t: any) => {
+export const httpErrorHandler = (t: ClarkError) => {
     console.error(t)
     error.value = t
 }

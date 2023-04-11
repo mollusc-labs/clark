@@ -9,6 +9,7 @@ use Mojo::JSON qw(encode_json decode_json);
 use Clark::Util::Inflate;
 use Data::Dumper;
 use DateTime;
+use Data::UUID;
 
 sub _find {
     my $self   = shift;
@@ -100,7 +101,12 @@ sub today {
 
 sub create {
     my $self = shift;
-    my $json = { $self->req->json->to_hash };
+    my $json;
+    eval { $json = $self->req->json }
+        or return $self->render(
+        json   => { err => 400, msg => 'Bad Request' },
+        status => 400
+        );
 
     my @errors = @{ $self->log_validator->validate($json) };
     if ( scalar @errors ) {
@@ -113,8 +119,12 @@ sub create {
     $json->{'hostname'}   = 'rest' unless $json->{'hostname'};
     $json->{'process_id'} = 'rest' unless $json->{'process_id'};
 
-    my $log = $self->log_repository->new_result($json)->insert;
-    $self->render( status => 201, json => { $log->get_inflated_columns } );
+    $json->{'id'} = Data::UUID->new->create_str;
+    my $log = { $self->log_repository->new_result($json)
+            ->insert->get_inflated_columns };
+    $self->app->log->info( 'Created log via REST with id: ' . $log->id );
+    delete $log->{'id'};
+    $self->render( status => 201, json => $log );
 }
 
 sub service_names {

@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import type { User } from '../model/user'
 import type { Dashboard } from '../model/dashboard'
+import type { ClarkError } from '../model/error'
 
 export const user = reactive<User>({
     name: 'unknown',
@@ -16,6 +17,6 @@ export const dashboards = reactive<{ value: Dashboard[] }>({
     value: []
 })
 
-export const error = reactive<{ value: any | undefined }>({
+export const error = reactive<{ value: ClarkError | undefined }>({
     value: undefined
 })

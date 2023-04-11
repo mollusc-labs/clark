@@ -1,13 +1,12 @@
 package Clark::Schema::ResultSet::Log;
 
-use base 'DBIx::Class::ResultSet';
+use parent 'Clark::Schema::Base::ResultSet';
 use DateTime;
 use Scalar::Util qw(looks_like_number);
 use Data::Dumper;
 use strict;
 use warnings;
 use v5.10;    # for state
-use Clark::Schema;
 
 sub by_params {
     my $self = shift;
@@ -126,6 +125,13 @@ sub today {
             rows     => $rows
         }
         );
+}
+
+sub create {
+    my $self = shift;
+    my $obj  = shift;
+
+    return $self->new_result( { %{$obj}, retrieve_on_insert => 1 } )->insert;
 }
 
 1;
