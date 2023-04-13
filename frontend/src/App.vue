@@ -7,16 +7,13 @@ import type { User } from './lib/model/user'
 import type { Dashboard } from './lib/model/dashboard'
 import { get, post } from './lib/util/http'
 
-const DEFAULT_DASHBOARD: string = 'default'
-
 const state = reactive<{ loading: boolean, addDashboardDisabled: boolean }>({
   loading: true,
   addDashboardDisabled: false
 })
 
-const selectDashboard = ({ query, id }: Dashboard) => {
-  selectedDashboard.selected = query
-  selectedDashboard.id = id
+const selectDashboard = (d: Dashboard) => {
+  selectedDashboard.value = d
 }
 
 const newDashboard = () => {
@@ -28,8 +25,7 @@ const newDashboard = () => {
     } as Dashboard)
       .then((json: Dashboard) => {
         dashboards.value.push(json)
-        selectedDashboard.id = json.id
-        selectedDashboard.selected = json.query
+        selectedDashboard.value = json
       })
   } finally {
     state.addDashboardDisabled = false
@@ -39,7 +35,7 @@ const newDashboard = () => {
 
 onMounted(() => {
   Promise.all([
-    get<User>('/api/users/identify').then(t => { if (t) return t; else throw Error() }),
+    get<User>('/api/users/identify'),
     get<Dashboard[]>('/api/dashboards')
   ]).then(([identified, dbs]) => {
     user.is_admin = identified.is_admin ? true : false // is_admin is 0 or 1
@@ -62,7 +58,7 @@ onMounted(() => {
           <v-list-item v-if="!state.loading">
             <v-list class="overflow-y-auto" style="max-height: 80vh">
               <v-list-item v-for="db in dashboards.value" @click="() => selectDashboard(db)" :title="db.name"
-                :value="db.query" :active="selectedDashboard.id === db.id"
+                :value="db.query" :active="selectedDashboard.value?.id === db.id"
                 class="text-semibold overflow-ellipsis"></v-list-item>
             </v-list>
           </v-list-item>
@@ -95,18 +91,25 @@ onMounted(() => {
       </v-navigation-drawer>
 
       <v-main>
-        <v-container v-if="!state.loading" class="w-fill h-screen align-center m-0" fluid>
-          <RouterView />
+        <v-container v-if="!state.loading" class="w-full align-center m-0" fluid>
+          <v-content v-if="dashboards.value.length">
+            <RouterView />
+          </v-content>
+          <v-content v-if="!dashboards.value.length" class="block w-full h-100">
+            <p class="gray-500">
+              Please create a new dashboard using the (+) on the left side of your screen.
+            </p>
+          </v-content>
         </v-container>
         <v-container v-if="state.loading" class="w-fill h-screen align-center m-0 flex">
           <center class="m-auto self-center">
             <v-progress-circular indeterminate color="primary" size="70"></v-progress-circular>
           </center>
         </v-container>
-        <v-snackbar color="dark-red-2" v-model="error.value">
+        <v-snackbar color="dark-red-2" v-model="error.show">
           {{ error.value }}
           <template v-slot:actions>
-            <v-btn color="pink" variant="text" @click="error.value = false">
+            <v-btn color="pink" variant="text" @click="() => error.value = undefined">
               Close
             </v-btn>
           </template>

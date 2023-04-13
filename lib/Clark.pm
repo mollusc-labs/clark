@@ -311,6 +311,8 @@ sub startup ($self) {
         ->name('create_dashboard');
     $authorized_router->put('/api/dashboards/:id')->to('dashboard#update')
         ->name('update_dashboard');
+    $authorized_router->delete('/api/dashboards/:id')->to('dashboard#delete')
+        ->name('delete_dashboard');
     ## API Key routes
     $authorized_router->post('/api/keys')->to('key#create')->name('create_key');
 
