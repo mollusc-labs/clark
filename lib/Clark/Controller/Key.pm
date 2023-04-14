@@ -4,28 +4,37 @@ use strict;
 use warnings;
 use Crypt::JWT qw(encode_jwt);
 use Mojo::Base 'Mojolicious::Controller', -signatures;
+use Carp qw(croak);
+use Clark::Util::UUID;
 
-# TODO: Add validation here via validator
 sub create {
-    my $self    = shift;
-    my $uid     = $self->session('user');
+    my $self = shift;
+    my $uid  = $self->session('user');
+
+    my @errors = @{ $self->key_validator->validate( $self->req->json || {} ) };
+    if ( scalar @errors ) {
+        return $self->render(
+            json   => { err => 400, msg => \@errors },
+            status => 400
+        );
+    }
+
+    my $id      = Clark::Util::UUID->new;
     my $matcher = $self->req->json->{'matcher'};
     my $key     = encode_jwt(
-        payload => { user => $uid, matcher => $matcher },
+        payload => { id => $id, matcher => $matcher },
         alg     => 'HS256',
         key     => $ENV{'CLARK_API_KEY'}
-    );
+    ) || croak 'Your CLARK_API_KEY is not set';
 
     my %obj = $self->key_repository->create(
-        {   value      => $key,
+        {   id         => $id,
+            value      => $key,
             matcher    => $matcher,
             created_by => $uid
         }
-        )->get_columns
-        || return $self->render(
-        status => 400,
-        json   => { err => 400, msg => 'Bad request' }
-        );
+    )->get_columns;
+
     delete $obj{'id'};
 
     $self->render( status => 201, json => %obj );

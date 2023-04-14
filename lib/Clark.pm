@@ -60,6 +60,15 @@ my $c = container 'Clark' => as {
             },
             dependencies => []
         );
+
+        service 'key' => (
+            lifecycle => 'Singleton',
+            block     => sub {
+                require Clark::Validator::Key;
+                return Clark::Validator::Key->new;
+            },
+            dependencies => []
+        );
     };
 };
 
@@ -88,6 +97,8 @@ sub startup ($self) {
             sub { return $c->resolve( service => 'Validator/dashboard' ) } );
     $self->helper( log_validator =>
             sub { return $c->resolve( service => 'Validator/log' ) } );
+    $self->helper( key_validator =>
+            sub { return $c->resolve( service => 'Validator/key' ) } );
 
     state $known_errors = {
         400 => { err => 400, msg => 'Bad Request' },

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { Key } from '@/lib/model/key';
-import { reactive } from 'vue';
+import type { Key } from '@/lib/model/key'
+import { reactive } from 'vue'
+import { get, post } from '@/lib/util/http'
 
 const props = defineProps<{ keys: Key[], loading: boolean }>()
 
@@ -10,13 +11,30 @@ const headers = [
     { title: 'Created By', align: 'start', key: 'created_by' }
 ]
 
-const newKey = reactive({
-
+const newKey = reactive<{ matcher: string | undefined }>({
+    matcher: undefined
 })
 
 const state = reactive({
-    showDialog: false
+    showDialog: false,
+    lockDialog: false
 })
+
+const closeDialog = () => {
+    state.showDialog = false;
+}
+
+const saveKey = () => {
+    state.lockDialog = true;
+    try {
+        post<Key>('/api/keys', { matcher: newKey.matcher })
+            .then(key => {
+                props.keys.push(key)
+            })
+    } finally {
+        state.lockDialog = false;
+    }
+}
 
 </script>
 <template>
@@ -25,8 +43,10 @@ const state = reactive({
             <v-data-table class="elevation-1" :loading="props.loading" :headers="headers" :items="props.keys"
                 items-per-page="15" fixed-header fixed-footer height="100%">
                 <template v-slot:top>
-                    <v-toolbar>
-                        <v-toolbar-title>My CRUD</v-toolbar-title>
+                    <v-toolbar class="bg-white">
+                        <v-toolbar-title>
+                            API Keys
+                        </v-toolbar-title>
                         <v-dialog v-model="state.showDialog" max-width="500px">
                             <v-card>
                                 <v-card-title>
@@ -35,42 +55,28 @@ const state = reactive({
                                 <v-card-text>
                                     <v-container>
                                         <v-row>
-                                            <v-col cols="12" sm="6" md="4">
-                                                <v-text-field v-model="editedItem.name" label="Dessert name"></v-text-field>
-                                            </v-col>
-                                            <v-col cols="12" sm="6" md="4">
-                                                <v-text-field v-model="editedItem.calories" label="Calories"></v-text-field>
-                                            </v-col>
-                                            <v-col cols="12" sm="6" md="4">
-                                                <v-text-field v-model="editedItem.fat" label="Fat (g)"></v-text-field>
-                                            </v-col>
-                                            <v-col cols="12" sm="6" md="4">
-                                                <v-text-field v-model="editedItem.carbs" label="Carbs (g)"></v-text-field>
-                                            </v-col>
-                                            <v-col cols="12" sm="6" md="4">
-                                                <v-text-field v-model="editedItem.protein"
-                                                    label="Protein (g)"></v-text-field>
+                                            <v-col>
+                                                <v-text-field v-model="newKey.matcher" label="Matcher"></v-text-field>
                                             </v-col>
                                         </v-row>
                                     </v-container>
                                 </v-card-text>
-
                                 <v-card-actions>
                                     <v-spacer></v-spacer>
-                                    <v-btn color="blue-darken-1" variant="text" @click="close">
+                                    <v-btn color="blue-darken-1" :disabled="state.lockDialog" variant="text"
+                                        @click="closeDialog">
                                         Cancel
                                     </v-btn>
-                                    <v-btn color="blue-darken-1" variant="text" @click="save">
+                                    <v-btn color="blue-darken-1" :disabled="state.lockDialog || !newKey.matcher"
+                                        variant="text" @click="saveKey">
                                         Save
                                     </v-btn>
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
-                        <template v-slot:activator="{ props }">
-                            <v-btn color="primary" dark class="mb-2" v-bind="props">
-                                New Key
-                            </v-btn>
-                        </template>
+                        <v-btn color="primary" dark class="mb-2" @click="() => state.showDialog = true">
+                            New API Key
+                        </v-btn>
                     </v-toolbar>
                 </template>
                 <template v-slot:item.actions="{ item }">

@@ -1,5 +1,6 @@
 import { error } from "./store"
 import type { ClarkError } from "../model/error"
+import { redirectToLogin } from "./redirect"
 
 const httpBodyBase = (method: string) => {
     return (url: string) => (body: any = undefined) =>
@@ -23,8 +24,11 @@ const httpBodyBase = (method: string) => {
 }
 
 export const httpErrorHandler = (t: ClarkError) => {
-    console.error(t)
-    error.value = t
+    if (t.err === 401 || t.err === 403) {
+        redirectToLogin()
+    } else {
+        error.value = t
+    }
 }
 
 export const get = <T>(url: string): Promise<T> => {
