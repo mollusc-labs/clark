@@ -54,8 +54,8 @@ sub update {
     ) unless my $orig = $self->dashboard_repository->find( { id => $id } );
 
     return $self->render(
-        json   => { err => 403, msg => 'Unauthorized' },
-        status => 403
+        json   => { err => 401, msg => 'Unauthorized' },
+        status => 401
     ) unless $orig->owner eq $uid;
 
     $json->{'name'} ||= 'Unnamed Dashboard';
@@ -95,10 +95,10 @@ sub delete {
 
     return $self->render(
         json => {
-            err => 403,
+            err => 401,
             msg => 'Unauthorized'
         },
-        status => 403
+        status => 401
     ) unless $user_id eq $dashboard->owner;
 
     $dashboard->delete;

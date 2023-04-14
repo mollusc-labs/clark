@@ -125,14 +125,13 @@ const saveDashboard = () => {
 }
 
 const deleteDashboard = () => {
+  console.log(selectedDashboard.value)
   del(`/api/dashboards/${selectedDashboard.value?.id}`)
     .then(() => {
       dashboards.value = dashboards.value.filter(t => t.id !== selectedDashboard.value?.id)
       selectedDashboard.value = dashboards.value[0] || undefined
     })
 }
-
-
 
 // TODO: Don't do this if there is no dashboard selected
 onMounted(() => {
@@ -163,8 +162,8 @@ watch(temp_severity, (val) => {
         Filters and Options
       </div>
       <div>
-        <v-btn>
-          <v-icon @click="() => deleteDashboard()" icon="mdi-trash-can" color="red" variant="flat"></v-icon>
+        <v-btn @click="() => deleteDashboard()">
+          <v-icon icon="mdi-trash-can" color="red" variant="flat"></v-icon>
         </v-btn>
       </div>
     </v-card-title>

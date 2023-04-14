@@ -6,6 +6,8 @@ import { redirectToLogin } from './lib/util/redirect'
 import type { User } from './lib/model/user'
 import type { Dashboard } from './lib/model/dashboard'
 import { get, post } from './lib/util/http'
+import router from './router'
+import { useRoute } from 'vue-router'
 
 const state = reactive<{ loading: boolean, addDashboardDisabled: boolean }>({
   loading: true,
@@ -13,6 +15,12 @@ const state = reactive<{ loading: boolean, addDashboardDisabled: boolean }>({
 })
 
 const selectDashboard = (d: Dashboard) => {
+  /*if (useRoute().path !== '/dashboard') {
+    router.push({ path: '/dashboard' })
+  }*/
+  if (router.currentRoute.value.fullPath !== '/dashboard') {
+    router.push({ path: '/dashboard', replace: true })
+  }
   selectedDashboard.value = d
 }
 
@@ -25,7 +33,7 @@ const newDashboard = () => {
     } as Dashboard)
       .then((json: Dashboard) => {
         dashboards.value.push(json)
-        selectedDashboard.value = json
+        selectDashboard(json)
       })
   } finally {
     state.addDashboardDisabled = false
@@ -91,7 +99,7 @@ onMounted(() => {
       </v-navigation-drawer>
 
       <v-main>
-        <v-container v-if="!state.loading" class="w-full align-center m-0" fluid>
+        <v-container v-if="!state.loading" class="w-full h-screen overflow-auto align-center m-0" fluid>
           <v-content v-if="dashboards.value.length">
             <RouterView />
           </v-content>

@@ -239,8 +239,8 @@ sub startup ($self) {
             };
             unless ( $req_api_key && not($@) ) {
                 $c->render(
-                    json   => { err => 403, msg => 'Unauthorized' },
-                    status => 403
+                    json   => { err => 401, msg => 'Unauthorized' },
+                    status => 401
                 );
                 return undef;
             }
@@ -254,8 +254,8 @@ sub startup ($self) {
         '/' => sub ($c) {
             unless ( $c->stash('user')->is_admin ) {
                 $c->render(
-                    status => 403,
-                    json   => { err => 403, msg => 'Unauthorized' }
+                    status => 401,
+                    json   => { err => 401, msg => 'Unauthorized' }
                 );
                 return undef;
             }

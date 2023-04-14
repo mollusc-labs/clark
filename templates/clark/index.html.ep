@@ -5,11 +5,11 @@
     <%= $error %>
   </div>
   % }
-  <div>
+  <div style="color: black">
     Name<br>
     %= text_field 'name', class => '', required => ''
   </div>
-  <div>
+  <div style="color: black">
     Password<br>
     %= password_field 'password', required => ''
   </div>

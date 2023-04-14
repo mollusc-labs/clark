@@ -12,7 +12,7 @@ sub active {
 
 sub by_key {
     my $self = shift;
-    return $self->active->search( { key => pop } );
+    return $self->active->find( { key => pop } );
 }
 
 sub by_id {

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecord, type RouteRecordNormalized } from 'vue-router'
 import DashboardView from '../views/DashboardView.vue'
+import AdminView from '../views/AdminView.vue'
 
 const routes = [
   {
@@ -15,6 +16,10 @@ const router = createRouter({
     {
       path: '/dashboard',
       children: routes
+    },
+    {
+      path: '/admin',
+      component: AdminView
     }
   ]
 })
