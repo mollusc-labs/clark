@@ -43,7 +43,7 @@ sub count {
     my $count
         = $self->_find->search( {},
         { '+select' => [ { count => '*', -as => 'total' } ] } )
-        . get_column('total');
+        ->get_column('total');
     return $self->render( json => { count => $count } );
 }
 

@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import type { Key } from '@/lib/model/key'
 import { reactive } from 'vue'
-import { get, post } from '@/lib/util/http'
+import { post } from '@/lib/util/http'
 
 const props = defineProps<{ keys: Key[], loading: boolean }>()
 
 const headers = [
     { title: 'Key', align: 'start', key: 'value' },
-    { title: 'Matches', align: 'start', key: 'matcher' },
-    { title: 'Created By', align: 'start', key: 'created_by' }
+    { title: 'Matches', align: 'start', key: 'matcher' }
 ]
 
 const newKey = reactive<{ matcher: string | undefined }>({
@@ -17,7 +16,8 @@ const newKey = reactive<{ matcher: string | undefined }>({
 
 const state = reactive({
     showDialog: false,
-    lockDialog: false
+    lockDialog: false,
+    loading: false
 })
 
 const closeDialog = () => {
@@ -35,7 +35,6 @@ const saveKey = () => {
         state.lockDialog = false;
     }
 }
-
 </script>
 <template>
     <v-card class="mt-2 p0">

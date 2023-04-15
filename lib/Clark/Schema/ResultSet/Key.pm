@@ -6,18 +6,15 @@ use strict;
 use warnings;
 
 sub active {
-    my $self = shift;
-    return $self->search( { is_active => 1 } );
+    return shift->search( { is_active => 1 } );
 }
 
 sub by_key {
-    my $self = shift;
-    return $self->active->find( { key => pop } );
+    return shift->active->find( { key => pop } );
 }
 
 sub by_id {
-    my $self = shift;
-    return $self->active->search( { id => pop } );
+    return shift->active->find( { id => pop } );
 }
 
 1;

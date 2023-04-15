@@ -54,7 +54,7 @@ sub login ($self) {
         $self->session( last_login_attempt => time );
         $self->app->log->info(
             "Login attempt for user $user failed due to too many attempts");
-        
+
         $self->stash( error =>
                 'You\'ve tried to login too many times recently, try again later'
         );
@@ -68,8 +68,9 @@ sub login ($self) {
         $self->app->log->info("User $user logged in successfully");
         $user_model->last_login( DateTime->now );
         $user_model->update;
-        $self->session( user => $user_model->id );
-        $self->session( ip   => $self->tx->original_remote_address );
+        $self->session( user     => $user_model->id );
+        $self->session( ip       => $self->tx->original_remote_address );
+        $self->session( is_admin => $user_model->is_admin );
         $self->redirect_to('/dashboard');
     }
     else {

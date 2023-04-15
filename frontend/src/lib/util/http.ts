@@ -24,6 +24,7 @@ const httpBodyBase = (method: string) => {
 }
 
 export const httpErrorHandler = (t: ClarkError) => {
+    console.error(t)
     if (t.err === 401 || t.err === 403) {
         redirectToLogin()
     } else {
@@ -42,6 +43,7 @@ export const get = <T>(url: string): Promise<T> => {
         })
         .catch(httpErrorHandler)
 }
+
 export const del = (url: string): Promise<void> => {
     return fetch(url, {
         method: 'DELETE'

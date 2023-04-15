@@ -12,12 +12,11 @@ __PACKAGE__->add_columns(
     id => {
         data_type         => 'varchar',
         size              => 36,
-        unique            => 1,
-        is_uuid           => 1,
         is_auto_increment => 1
     },
     qw/service_name hostname process_id severity message created_at/
 );
+__PACKAGE__->mk_group_accessors();
 __PACKAGE__->set_primary_key('id');
 
 1;

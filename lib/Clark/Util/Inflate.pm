@@ -6,7 +6,7 @@ use warnings;
 use v5.36;
 
 sub many {
-    shift;
+    my $s = shift;
     my @a = map( {
             { $_->get_inflated_columns }
     } @_ );

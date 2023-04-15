@@ -100,6 +100,7 @@ sub by_severity {
 sub latest {
     my $self = shift;
     my $rows = pop;
+
     $rows = 20 unless looks_like_number $rows;
 
     return $self->search(
@@ -118,7 +119,7 @@ sub today {
 
     $rows = 20 unless looks_like_number $rows;
 
-    $c->from_date( DateTime->from_epoch( epoch => ( time - $delta ) ) )
+    return $c->from_date( DateTime->from_epoch( epoch => ( time - $delta ) ) )
         ->search(
         { service_name => $service_name },
         {   order_by => { -desc => 'created_at ' },

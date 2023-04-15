@@ -263,7 +263,7 @@ sub startup ($self) {
     # For routest that require administrator access
     my $admin_authorized_router = $authorized_router->under(
         '/' => sub ($c) {
-            unless ( $c->stash('user')->is_admin ) {
+            unless ( $c->session('is_admin') ) {
                 $c->render(
                     status => 401,
                     json   => { err => 401, msg => 'Unauthorized' }
@@ -325,7 +325,10 @@ sub startup ($self) {
     $authorized_router->delete('/api/dashboards/:id')->to('dashboard#delete')
         ->name('delete_dashboard');
     ## API Key routes
-    $authorized_router->post('/api/keys')->to('key#create')->name('create_key');
+    $admin_authorized_router->get('/api/keys')->to('key#find')
+        ->name('find_key');
+    $admin_authorized_router->post('/api/keys')->to('key#create')
+        ->name('create_key');
 
     $self->app->log($log);
 }

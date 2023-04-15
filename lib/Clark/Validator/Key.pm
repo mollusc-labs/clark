@@ -19,4 +19,15 @@ has validator => sub {
     );
 };
 
+sub validate {
+    my $self      = shift;
+    my $validator = $self->validator;
+    my @errors    = $validator->validate(pop);
+    return \@errors;
+}
+
+sub new {
+    return bless {}, pop;
+}
+
 1;

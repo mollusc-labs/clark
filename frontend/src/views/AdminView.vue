@@ -5,6 +5,7 @@ import { user } from '@/lib/util/store';
 import { reactive } from 'vue';
 import { onMounted } from 'vue';
 import Table from '../components/admin/keys/Table.vue'
+import { get } from '@/lib/util/http';
 
 const state = reactive<{ keys: Key[], loading: boolean }>({
     keys: [],
@@ -15,6 +16,12 @@ onMounted(() => {
     if (!user.is_admin) {
         redirectToLogin()
     }
+
+    get<Key[]>('/api/keys')
+        .then(keys => {
+            state.keys = keys
+            state.loading = false
+        })
 })
 </script>
 <template>
