@@ -24,7 +24,10 @@ const state = reactive({
   loading: true,
   service_names: [] as string[],
   hostnames: [] as string[],
-  saving: false
+  saving: false,
+  showEditName: false,
+  editingName: false,
+  newName: '' as string | undefined
 })
 
 const query = reactive<Query>({
@@ -52,6 +55,8 @@ const updateRaw = () => {
 }
 
 const update = () => {
+  state.newName = selectedDashboard.value?.name;
+
   const newQuery: Query = degenerateQuery();
   query.date = newQuery.date;
   query.hostname = newQuery.hostname;
@@ -111,7 +116,7 @@ const realtimeCancel = () => {
 
 const saveDashboard = () => {
   state.saving = true;
-  put<Dashboard>(`/api/dashboards/${selectedDashboard.value?.id}`, { name: selectedDashboard.value?.name, query: '?' + generateQuery() })
+  put<Dashboard>(`/api/dashboards/${selectedDashboard.value?.id}`, { name: state.newName, query: '?' + generateQuery() })
     .then(dash => {
       selectedDashboard.value = dash
       dashboards.value.forEach(async t => {
@@ -121,6 +126,8 @@ const saveDashboard = () => {
         }
         state.saving = false;
       })
+      state.editingName = false;
+      state.showEditName = false;
     }).catch(() => state.saving = false)
 }
 
@@ -158,13 +165,13 @@ watch(temp_severity, (val) => {
 <template>
   <v-card>
     <v-card-title class="flex flex-row justify-between w-full">
-      <div>
-        Filters and Options
+      <div v-show="!state.editingName" @mouseover="state.showEditName = true" @mouseleave="state.showEditName = false"
+        @click="state.editingName = true" :color="state.showEditName ? 'primary' : 'black'" class="cursor-pointer w-fit">
+        {{ selectedDashboard.value?.name }}
+        <v-icon :color="state.showEditName ? 'primary' : 'disabled'" icon="mdi-pencil" size="sm"></v-icon>
       </div>
-      <div>
-        <v-btn @click="() => deleteDashboard()">
-          <v-icon icon="mdi-trash-can" color="red" variant="flat"></v-icon>
-        </v-btn>
+      <div v-show="state.editingName && selectedDashboard.value">
+        <v-text-field density="compact" v-model="state.newName"></v-text-field>
       </div>
     </v-card-title>
     <v-content>
@@ -195,10 +202,15 @@ watch(temp_severity, (val) => {
           </v-col>
         </v-row>
         <v-row>
-          <v-col>
-            <v-btn color="primary" :disabled="!!state.saving" class="mr-2" @click="() => updateQuery()">Query</v-btn>
-            <v-btn color="teal" :disabled="!!state.saving" class="mr-2" @click="() => saveDashboard()">Save</v-btn>
-            <v-btn :disabled="!!state.saving" @click="() => { reset(); updateQuery() }">Reset</v-btn>
+          <v-col class="flex flex-row justify-between">
+            <div>
+              <v-btn color="primary" :disabled="!!state.saving" class="mr-2" @click="() => updateQuery()">Query</v-btn>
+              <v-btn color="teal" :disabled="!!state.saving" class="mr-2" @click="() => saveDashboard()">Save</v-btn>
+              <v-btn :disabled="!!state.saving" @click="() => { reset(); updateQuery() }">Clear</v-btn>
+            </div>
+            <v-btn @click="() => deleteDashboard()">
+              <v-icon icon="mdi-trash-can" color="red" variant="flat"></v-icon>
+            </v-btn>
           </v-col>
         </v-row>
       </v-container>

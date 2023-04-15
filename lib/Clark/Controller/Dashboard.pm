@@ -111,10 +111,8 @@ sub find {
     my $id   = $self->session('user');
 
     my $dashboards = Clark::Util::Inflate->many(
-        $self->dashboard_repository->search(
-            { owner   => $id },
-            { columns => [qw[id name query]] }
-        )
+        $self->dashboard_repository->search( { owner => $id },
+            { columns => [qw[id name query]] } )->all
     );
     $self->render( json => $dashboards );
 }

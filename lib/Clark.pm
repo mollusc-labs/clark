@@ -242,8 +242,10 @@ sub startup ($self) {
                 = ( split /\s/, $c->req->headers->to_hash->{'X-CLARK'} || '' )
                 [-1];
 
+            my $header;
+            my $payload;
             eval {
-                decode_jwt(
+                ( $header, $payload ) = decode_jwt(
                     token => $req_api_key,
                     key   => $ENV{'CLARK_API_KEY'}
                 );

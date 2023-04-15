@@ -76,9 +76,8 @@ sub latest_ws {
             $c->send(
                 encode_json(
                     Clark::Util::Inflate->many(
-                        $self->log_repository->from_date(
-                            $date, DateTime->now, 100
-                        )
+                        $self->log_repository->from_date( $date, DateTime->now,
+                            100 )->all
                     )
                 )
             );
@@ -93,7 +92,7 @@ sub today {
             Clark::Util::Inflate->many(
                 $self->log_repository->today(
                     $self->req->param('service_name')
-                )
+                )->all
             )
         ]
     );
