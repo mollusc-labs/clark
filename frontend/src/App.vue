@@ -95,10 +95,11 @@ onMounted(() => {
       </v-navigation-drawer>
       <v-main>
         <v-container v-if="!state.loading" class="w-full h-screen overflow-auto align-center m-0" fluid>
-          <v-content v-if="dashboards.value.length">
+          <v-content v-if="dashboards.value.length || router.currentRoute.value.fullPath !== '/dashboard'">
             <RouterView />
           </v-content>
-          <v-content v-if="!dashboards.value.length" class="block w-full h-100">
+          <v-content v-if="!dashboards.value.length && router.currentRoute.value.fullPath === '/dashboard'" class=" block
+                    w-full h-100">
             <p class="gray-500">
               Please create a new dashboard using the (+) on the left side of your screen.
             </p>
@@ -110,9 +111,9 @@ onMounted(() => {
           </center>
         </v-container>
         <v-snackbar color="red" v-model="error.show">
-          {{ error.value }}
+          {{ error.value?.msg }}
           <template v-slot:actions>
-            <v-btn color="pink" variant="text" @click="() => error.value = undefined">
+            <v-btn color="white" variant="text" @click="() => error.value = undefined">
               Close
             </v-btn>
           </template>

@@ -5,11 +5,8 @@ import { user } from '@/lib/util/store';
 import { reactive } from 'vue';
 import { onMounted } from 'vue';
 import Table from '../components/admin/keys/Table.vue'
-import { get } from '@/lib/util/http';
 
-const state = reactive<{ keys: Key[], loading: boolean, tab: string }>({
-    keys: [],
-    loading: true,
+const state = reactive<{ tab: string }>({
     tab: "keys"
 })
 
@@ -17,12 +14,6 @@ onMounted(() => {
     if (!user.is_admin) {
         redirectToLogin()
     }
-
-    get<Key[]>('/api/keys')
-        .then(keys => {
-            state.keys = keys
-            state.loading = false
-        })
 })
 </script>
 <template>
@@ -37,7 +28,7 @@ onMounted(() => {
             <v-card-text>
                 <v-window v-model="state.tab">
                     <v-window-item value="keys">
-                        <Table :keys="state.keys" :loading="state.loading"></Table>
+                        <Table></Table>
                     </v-window-item>
                     <v-window-item value="users">
                         <b>TODO: Implement me</b>

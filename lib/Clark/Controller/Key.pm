@@ -54,13 +54,14 @@ sub find {
 
 sub delete {
     my $self = shift;
-    my $key  = $self->stash('api_key');
-    eval { $self->key_repository->delete( { key => $key } ) };
+    my $id   = $self->stash('id');
+    my $key  = $self->key_repository->find( { id => $id } );
     return $self->render(
         status => 404,
         json   => { err => 404, msg => 'Not found' }
-    ) if $@;
-    $self->rendered( status => 204 );
+    ) unless $key;
+    $key->delete;
+    $self->rendered(204);
 }
 
 1;

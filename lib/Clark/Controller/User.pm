@@ -47,14 +47,37 @@ sub update_password {
     return $self->render( status => 204 );
 }
 
-sub update_user {
+sub update {
     my $self = shift;
-    my $user = $self->user_repository->find( { id => $self->session('user') } );
-    my $password = $self->req->json->{'password'};
-    my $username = $self->req->json->{'username'};
-    my $is_admin = $self->req->json->{'is_admin'};
+    my $uid  = $self->session('user');
 
-    if ( $user->password ne Clark::Util::Crypt->hash($password) ) {
+    my $req_user = $self->user_repository->find( { id => $uid } );
+    my $user     = $self->user_repository->find( { id => $self->stash('id') } );
+
+    return $self->render(
+        json   => { err => 403, msg => 'You cannot modify the root user' },
+        status => 403
+    ) if $user->is_root && not( $req_user->is_root );
+
+    return $self->render(
+        json   => { err => 403, msg => 'Only the root user can modify admins' },
+        status => 403
+    ) if $user->is_admin && not( $req_user->is_root );
+
+    my $req_password = $self->req->json->{'req_password'};
+    my $password     = $self->req->json->{'password'};
+    my $username     = $self->req->json->{'username'};
+    my $is_admin     = $self->req->json->{'is_admin'};
+
+    delete $self->req->json->{'req_password'};
+    delete $self->req->json->{'password'};
+
+    return $self->render(
+        json   => { err => 400, msg => 'You cannot make yourself admin' },
+        status => 400
+    ) if $is_admin && not( $req_user->is_admin );
+
+    if ( $req_user->password ne Clark::Util::Crypt->hash($req_password) ) {
         return $self->render(
             status => 400,
             json   => { err => 400, msg => 'Invalid password' }
@@ -66,8 +89,12 @@ sub update_user {
         json   => { err => 400, msg => 'Username already in use' }
     ) unless $self->_validate_username_uniqueness($username);
 
-    $user->username($username)->is_admin($is_admin)->update;
-    return $self->render( status => 204 );
+    $user->update( $self->req->json );
+
+    my $sanitized_user
+        = $self->user_repository->find( { id => $self->stash('id') },
+        { columns => [qw/name is_admin is_root/] } );
+    return $self->render( json => $sanitized_user->get_inflated_columns );
 }
 
 sub identify {

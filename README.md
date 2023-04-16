@@ -1,6 +1,5 @@
 # Clark
-A free and open-source logging dashboard, and REST API for `syslog`, `REST`, and soon, `AMQP`.
-Clark is packaged as a simple docker-compose setup, allowing for seamless integrations and deployments.
+A free and open-source logging dashboard, and REST API for `rsyslog` and theoretically any other syslog-daemon.
 
 ## How to use
 1. Make sure you have Perl >5.10 and the following packages installed:
@@ -38,7 +37,7 @@ If you plan to log over the internet (not recommended outside of the REST API) y
 in the `rsyslog.d/remote.conf`, this is defaulted to `514` for both TCP and UDP.
 
 ## Contributing
-Clark is a `Mojolicious` application that uses a `Vue3` frontend. Any and all contributions will be considered!
+Clark is a Perl application using `Mojolicious` that uses a `Vue3` frontend. Any and all contributions will be considered!
 Make sure your Perl code follows the `.perltidyrc`'s configuration before you make any pull-requests. Thanks!
 
 #### How to run in development

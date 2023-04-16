@@ -3,14 +3,16 @@ import type { User } from '../model/user'
 import type { Dashboard } from '../model/dashboard'
 import type { ClarkError } from '../model/error'
 import { watch } from 'vue'
+import type { Key } from '../model/key'
 
 export const user = reactive<User>({
     name: 'unknown',
     is_admin: false
 })
 
-export const selectedDashboard = reactive<{ value: Dashboard | undefined }>({
-    value: undefined
+export const selectedDashboard = reactive<{ value: Dashboard | undefined, original: Dashboard | undefined }>({
+    value: undefined,
+    original: undefined
 })
 
 export const dashboards = reactive<{ value: Dashboard[] }>({

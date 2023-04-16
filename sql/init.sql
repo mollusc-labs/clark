@@ -52,4 +52,6 @@ FOR EACH ROW
     INSERT INTO dashboard (name, query, owner)
     VALUES ('Newest 100 Logs', '?size=100', NEW.id);
 
+ALTER TABLE user ADD is_root TINYINT(1) DEFAULT 0;
+
 COMMIT;

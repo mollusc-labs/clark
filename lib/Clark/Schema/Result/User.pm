@@ -29,6 +29,10 @@ __PACKAGE__->add_columns(
         data_type => 'tinyint',
         size      => 1
     },
+    is_root => {
+        data_type => 'tinyint',
+        size      => 1
+    },
     qw/last_login created_at /
 );
 

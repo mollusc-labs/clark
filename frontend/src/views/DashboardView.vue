@@ -14,7 +14,7 @@ import type { Dashboard } from '@/lib/model/dashboard'
 
 const realtime = ref(false)
 const interval = ref();
-const temp_severity = ref('Any');
+const tempSeverity = ref('Any');
 
 const severities = [[undefined, 'Any'], ...severityMap].map(t => t[1]);
 
@@ -41,8 +41,7 @@ const query = reactive<Query>({
 })
 
 const updateRaw = () => {
-  state.loading = true;
-  Promise.all([
+  return Promise.all([
     get<Log[]>('/api/logs' + selectedDashboard.value?.query),
     get<string[]>('/api/logs/services'),
     get<string[]>('/api/logs/hosts')
@@ -55,6 +54,7 @@ const updateRaw = () => {
 }
 
 const update = () => {
+  state.loading = true
   state.newName = selectedDashboard.value?.name;
 
   const newQuery: Query = degenerateQuery();
@@ -66,7 +66,7 @@ const update = () => {
   query.text = newQuery.text;
 
   if (query.severity)
-    temp_severity.value = severityMap.get(query.severity) as string;
+    tempSeverity.value = severityMap.get(query.severity) as string;
 
   updateRaw()
 }
@@ -82,7 +82,7 @@ const degenerateQuery = () => {
   const keys = [...new URLSearchParams(selectedDashboard.value?.query).entries()] as Array<[string, any]>;
   return keys.reduce((acc, [key, val]) => {
     if (key in query) {
-      acc[key as keyof Query] = val;
+      acc[key as keyof Query] = val
     }
     return acc;
   }, {} as Query);
@@ -91,7 +91,7 @@ const degenerateQuery = () => {
 const updateQuery = () => {
   const q = generateQuery()
   if (selectedDashboard.value
-    && q !== selectedDashboard.value?.id) {
+    && q !== selectedDashboard.value?.query) {
     selectedDashboard.value.query = '?' + q
     update()
   }
@@ -105,7 +105,7 @@ const reset = () => {
   query.text = undefined
   query.date = undefined
   query.size = 100
-  temp_severity.value = 'Any'
+  tempSeverity.value = 'Any'
 }
 
 const realtimeUpdate = () => {
@@ -145,29 +145,29 @@ const deleteDashboard = () => {
 onMounted(() => {
   if (selectedDashboard.value)
     update()
+
+  watch(realtime, (value, old) => {
+    if (value) {
+      realtimeUpdate()
+    } else {
+      realtimeCancel()
+    }
+  })
+
+  watch(() => selectedDashboard.value, () => {
+    update()
+  })
+
+  watch(tempSeverity, val => {
+    query.severity = invertedSeverityMap.get(val);
+  })
+
+  watch(() => state.editingName, () => {
+    if (selectedDashboard.value) {
+      selectedDashboard.value.name = state.newName || ''
+    }
+  })
 });
-
-watch(realtime, (value, old) => {
-  if (value) {
-    realtimeUpdate()
-  } else {
-    realtimeCancel()
-  }
-})
-
-watch(() => selectedDashboard.value, () => {
-  update()
-})
-
-watch(temp_severity, val => {
-  query.severity = invertedSeverityMap.get(val);
-})
-
-watch(() => state.editingName, () => {
-  if (selectedDashboard.value) {
-    selectedDashboard.value.name = state.newName || ''
-  }
-})
 </script>
 
 <template>
@@ -198,12 +198,12 @@ watch(() => state.editingName, () => {
             <v-text-field density="compact" v-model="query.process_id" label="Process ID"></v-text-field>
           </v-col>
           <v-col cols="16" md="2">
-            <v-select density="compact" item-text="name" item-value="severity" :items="severities" v-model="temp_severity"
+            <v-select density="compact" item-text="name" item-value="severity" :items="severities" v-model="tempSeverity"
               label="Severity"></v-select>
           </v-col>
         </v-row>
         <v-row>
-          <v-col cols="16" md="4">
+          <v-col cols="16" md="6">
             <v-text-field label="Search" density="compact" v-model="query.text"></v-text-field>
           </v-col>
           <v-col cols="16" md="2">
@@ -213,12 +213,22 @@ watch(() => state.editingName, () => {
         <v-row>
           <v-col class="flex flex-row justify-between">
             <div>
-              <v-btn color="primary" :disabled="!!state.saving" class="mr-2" @click="() => updateQuery()">Query</v-btn>
-              <v-btn color="teal" :disabled="!!state.saving" class="mr-2" @click="() => saveDashboard()">Save</v-btn>
-              <v-btn :disabled="!!state.saving" @click="() => { reset(); updateQuery() }">Clear</v-btn>
+              <v-btn color="primary" :disabled="!!state.saving" class="mr-2" @click="() => updateQuery()">
+                Query
+                <v-tooltip activator="parent" location="bottom" text="Search for logs that meet the criteria"></v-tooltip>
+              </v-btn>
+              <v-btn color="teal" :disabled="!!state.saving" class="mr-2" @click="() => saveDashboard()">
+                Save
+                <v-tooltip activator="parent" location="bottom" text="Save this dashboard"></v-tooltip>
+              </v-btn>
+              <v-btn :disabled="!!state.saving" @click="() => { reset(); updateQuery() }">
+                Clear
+                <v-tooltip activator="parent" location="bottom" text="Clear all filters"></v-tooltip>
+              </v-btn>
             </div>
             <v-btn @click="() => deleteDashboard()">
               <v-icon icon="mdi-trash-can" color="red" variant="flat"></v-icon>
+              <v-tooltip activator="parent" location="bottom" text="Delete this dashboard"></v-tooltip>
             </v-btn>
           </v-col>
         </v-row>

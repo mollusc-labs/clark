@@ -39,7 +39,7 @@ export const get = <T>(url: string): Promise<T> => {
                 return t.json()
             }
 
-            throw Error(t.statusText)
+            throw { err: t.status, msg: t.statusText }
         })
         .catch(httpErrorHandler)
 }
@@ -50,10 +50,8 @@ export const del = (url: string): Promise<void> => {
     })
         .then(t => {
             if (!t.ok) {
-                throw Error(t.statusText)
+                throw { err: t.status, msg: t.statusText }
             }
-
-            return
         })
         .catch(httpErrorHandler)
 }

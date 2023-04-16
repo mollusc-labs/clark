@@ -302,6 +302,8 @@ sub startup ($self) {
     ## Identification routes
     $only_authorized_router->get('/api/users/identify')->to('user#identify')
         ->name('identify_user');
+    $admin_authorized_router->put('/api/users/:id')->to('user#update')
+        ->name('update_user');
     ## Log routes
     $authorized_router->websocket('/ws/logs/latest')->to('log#latest_ws')
         ->name('ws_latest_log');
@@ -331,7 +333,7 @@ sub startup ($self) {
         ->name('find_key');
     $admin_authorized_router->post('/api/keys')->to('key#create')
         ->name('create_key');
-    $admin_authorized_router->delete('/api/keys/:value')->to('key#delete')
+    $admin_authorized_router->delete('/api/keys/:id')->to('key#delete')
         ->name('delete_key');
 
     $self->app->log($log);
