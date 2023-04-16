@@ -331,6 +331,8 @@ sub startup ($self) {
         ->name('find_key');
     $admin_authorized_router->post('/api/keys')->to('key#create')
         ->name('create_key');
+    $admin_authorized_router->delete('/api/keys/:value')->to('key#delete')
+        ->name('delete_key');
 
     $self->app->log($log);
 }

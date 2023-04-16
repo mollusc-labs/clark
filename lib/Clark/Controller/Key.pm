@@ -47,7 +47,8 @@ sub create {
 
 sub find {
     my $self = shift;
-    my $keys = $self->key_repository->search( { is_active => 1 } );
+    my $keys = $self->key_repository->active->search( {},
+        { columns => [qw/id value matcher/] } );
     return $self->render( json => Clark::Util::Inflate->many( $keys->all ) );
 }
 

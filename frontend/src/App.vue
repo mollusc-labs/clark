@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { selectedDashboard, user, dashboards, error } from '@/lib/util/store'
+import { selectedDashboard, user, dashboards, error, notice } from '@/lib/util/store'
 import { onMounted } from 'vue'
 import { redirectToLogin } from './lib/util/redirect'
 import type { User } from './lib/model/user'
 import type { Dashboard } from './lib/model/dashboard'
 import { get, post } from './lib/util/http'
 import router from './router'
-import { useRoute } from 'vue-router'
 
 const state = reactive<{ loading: boolean, addDashboardDisabled: boolean }>({
   loading: true,
@@ -15,9 +14,6 @@ const state = reactive<{ loading: boolean, addDashboardDisabled: boolean }>({
 })
 
 const selectDashboard = (d: Dashboard) => {
-  /*if (useRoute().path !== '/dashboard') {
-    router.push({ path: '/dashboard' })
-  }*/
   if (router.currentRoute.value.fullPath !== '/dashboard') {
     router.push({ path: '/dashboard', replace: true })
   }
@@ -88,16 +84,15 @@ onMounted(() => {
             <hr class="mt-auto">
             <v-list-item class="justify-self-end justify-center">
               <div class="flex justify-between w-full">
-                <RouterLink to="/admin" class="block mr-8 underline text-blue-500" v-if="user.is_admin">
+                <RouterLink to="/admin" class="block mr-8 underline text-primary" v-if="user.is_admin">
                   Admin Zone
                 </RouterLink>
-                <a href="https://github.com/mollusc-labs/clark" class="block underline text-blue-500">Help</a>
+                <a href="https://github.com/mollusc-labs/clark" class="block underline text-primary">Help</a>
               </div>
             </v-list-item>
           </div>
         </v-list>
       </v-navigation-drawer>
-
       <v-main>
         <v-container v-if="!state.loading" class="w-full h-screen overflow-auto align-center m-0" fluid>
           <v-content v-if="dashboards.value.length">
@@ -114,11 +109,19 @@ onMounted(() => {
             <v-progress-circular indeterminate color="primary" size="70"></v-progress-circular>
           </center>
         </v-container>
-        <v-snackbar color="dark-red-2" v-model="error.show">
+        <v-snackbar color="red" v-model="error.show">
           {{ error.value }}
           <template v-slot:actions>
             <v-btn color="pink" variant="text" @click="() => error.value = undefined">
               Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+        <v-snackbar color="primary" v-model="notice.show">
+          {{ notice.value }}
+          <template v-slot:actions>
+            <v-btn variant="text" @click="() => notice.value = ''">
+              Dismiss
             </v-btn>
           </template>
         </v-snackbar>

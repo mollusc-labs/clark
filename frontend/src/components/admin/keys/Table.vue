@@ -2,6 +2,7 @@
 import type { Key } from '@/lib/model/key'
 import { reactive } from 'vue'
 import { post } from '@/lib/util/http'
+import { notice } from '@/lib/util/store';
 
 const props = defineProps<{ keys: Key[], loading: boolean }>()
 
@@ -35,6 +36,15 @@ const saveKey = () => {
         state.lockDialog = false;
     }
 }
+
+
+const copyText = (text: string) => {
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            notice.value = "Copied API key to clipboard"
+        })
+}
+
 </script>
 <template>
     <v-card class="mt-2 p0">
@@ -43,9 +53,6 @@ const saveKey = () => {
                 items-per-page="15" fixed-header fixed-footer height="100%">
                 <template v-slot:top>
                     <v-toolbar class="bg-white">
-                        <v-toolbar-title>
-                            API Keys
-                        </v-toolbar-title>
                         <v-dialog v-model="state.showDialog" max-width="500px">
                             <v-card>
                                 <v-card-title>
@@ -73,10 +80,21 @@ const saveKey = () => {
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
-                        <v-btn color="primary" dark class="mb-2" @click="() => state.showDialog = true">
+                        <v-btn color="bg-primary" dark class="mb-2" @click="() => state.showDialog = true">
                             New API Key
                         </v-btn>
                     </v-toolbar>
+                </template>
+                <template @click.stop v-slot:item.value="{ item }">
+                    <v-hover>
+                        <template v-slot:default="{ isHovering, props }">
+                            <p v-bind="props" class="overflow-auto" :class="isHovering ? 'text-primary' : ''"
+                                @click="() => copyText(item.raw.value)">
+                                {{ item.raw.value }}
+                                <v-icon v-show="isHovering" icon="mdi-content-copy" size="sm"></v-icon>
+                            </p>
+                        </template>
+                    </v-hover>
                 </template>
                 <template v-slot:item.actions="{ item }">
                     <v-icon size="small">

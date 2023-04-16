@@ -7,9 +7,10 @@ import { onMounted } from 'vue';
 import Table from '../components/admin/keys/Table.vue'
 import { get } from '@/lib/util/http';
 
-const state = reactive<{ keys: Key[], loading: boolean }>({
+const state = reactive<{ keys: Key[], loading: boolean, tab: string }>({
     keys: [],
-    loading: true
+    loading: true,
+    tab: "keys"
 })
 
 onMounted(() => {
@@ -28,7 +29,21 @@ onMounted(() => {
     <v-card>
         <v-card-title>Admin Zone</v-card-title>
         <v-content class="h-screen">
-            <Table :keys="state.keys" :loading="state.loading"></Table>
+            <v-tabs v-model="state.tab" bg-color="primary">
+                <v-tab value="keys">Api Keys</v-tab>
+                <v-tab value="users">Users</v-tab>
+            </v-tabs>
+
+            <v-card-text>
+                <v-window v-model="state.tab">
+                    <v-window-item value="keys">
+                        <Table :keys="state.keys" :loading="state.loading"></Table>
+                    </v-window-item>
+                    <v-window-item value="users">
+                        <b>TODO: Implement me</b>
+                    </v-window-item>
+                </v-window>
+            </v-card-text>
         </v-content>
     </v-card>
 </template>

@@ -22,6 +22,15 @@ export const error = reactive<{ value: ClarkError | undefined, show: boolean | u
     show: false
 })
 
-watch(() => error.value, (val, old) => {
+export const notice = reactive<{ value: string | undefined, show: boolean }>({
+    value: undefined,
+    show: false
+})
+
+watch(() => error.value, (val) => {
     error.show = val ? true : false
+})
+
+watch(() => notice.value, (val) => {
+    notice.show = val ? true : false
 })

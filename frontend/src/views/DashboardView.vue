@@ -91,8 +91,10 @@ const degenerateQuery = () => {
 const updateQuery = () => {
   const q = generateQuery()
   if (selectedDashboard.value
-    && q !== selectedDashboard.value?.id)
+    && q !== selectedDashboard.value?.id) {
     selectedDashboard.value.query = '?' + q
+    update()
+  }
 }
 
 const reset = () => {
@@ -140,9 +142,9 @@ const deleteDashboard = () => {
     })
 }
 
-// TODO: Don't do this if there is no dashboard selected
 onMounted(() => {
-  update()
+  if (selectedDashboard.value)
+    update()
 });
 
 watch(realtime, (value, old) => {
@@ -155,10 +157,16 @@ watch(realtime, (value, old) => {
 
 watch(() => selectedDashboard.value, () => {
   update()
-}, { deep: true })
+})
 
-watch(temp_severity, (val) => {
+watch(temp_severity, val => {
   query.severity = invertedSeverityMap.get(val);
+})
+
+watch(() => state.editingName, () => {
+  if (selectedDashboard.value) {
+    selectedDashboard.value.name = state.newName || ''
+  }
 })
 </script>
 
@@ -171,11 +179,12 @@ watch(temp_severity, (val) => {
         <v-icon :color="state.showEditName ? 'primary' : 'disabled'" icon="mdi-pencil" size="sm"></v-icon>
       </div>
       <div v-show="state.editingName && selectedDashboard.value">
-        <v-text-field density="compact" v-model="state.newName"></v-text-field>
+        <v-text-field density="compact" v-model="state.newName"
+          v-on:keyup.enter="() => state.editingName = false"></v-text-field>
       </div>
     </v-card-title>
     <v-content>
-      <v-container>
+      <v-container @click="state.editingName = false">
         <v-switch @click.stop label="Real-time updates" v-model="realtime" color="blue"></v-switch>
         <v-row>
           <v-col cols="16" md="2">
