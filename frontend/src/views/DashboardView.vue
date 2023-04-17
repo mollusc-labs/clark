@@ -155,6 +155,7 @@ onMounted(() => {
   })
 
   watch(() => selectedDashboard.value, () => {
+    state.logs = []
     update()
   })
 
@@ -235,10 +236,10 @@ onMounted(() => {
       </v-container>
     </v-content>
   </v-card>
-  <v-card class="mb-2">
-    <v-content>
-      <TimeGraph :logs="state.logs" :loading="state.loading"></TimeGraph>
-    </v-content>
+  <Table v-if="!state.loading" class="flex-grow" :loading="state.loading" :logs="state.logs"></Table>
+  <v-card v-if="state.loading" class="w-full mt-2 flex justify-center content-center" style="height: calc(100% - 12vh)">
+    <center class="align-center">
+      <v-progress-circular indeterminate color="primary" size="70"></v-progress-circular>
+    </center>
   </v-card>
-  <Table class="flex-grow" :loading="state.loading" :logs="state.logs"></Table>
 </template>

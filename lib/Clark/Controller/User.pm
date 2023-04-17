@@ -42,7 +42,7 @@ sub update_password {
         );
     }
 
-    $user->update( password => Clark::Util::Crypt->hash($new_password) );
+    $user->update( { password => Clark::Util::Crypt->hash($new_password) } );
 
     return $self->render( status => 204 );
 }
@@ -55,14 +55,19 @@ sub update {
     my $user     = $self->user_repository->find( { id => $self->stash('id') } );
 
     return $self->render(
-        json   => { err => 403, msg => 'You cannot modify the root user' },
+        json => { err => 403, msg => 'You cannot modify other elevated users' },
         status => 403
-    ) if $user->is_root && not( $req_user->is_root );
+        )
+        if ( $user->is_root
+        || ( $user->is_admin && ( $user->id ne $req_user->id ) ) )
+        && not( $req_user->is_root );
 
     return $self->render(
         json   => { err => 403, msg => 'Only the root user can modify admins' },
         status => 403
-    ) if $user->is_admin && not( $req_user->is_root );
+        )
+        if ( $user->is_admin
+        && not( $req_user->is_root ) );
 
     my $req_password = $self->req->json->{'req_password'};
     my $password     = $self->req->json->{'password'};
@@ -77,12 +82,10 @@ sub update {
         status => 400
     ) if $is_admin && not( $req_user->is_admin );
 
-    if ( $req_user->password ne Clark::Util::Crypt->hash($req_password) ) {
-        return $self->render(
-            status => 400,
-            json   => { err => 400, msg => 'Invalid password' }
-        );
-    }
+    return $self->render(
+        status => 400,
+        json   => { err => 400, msg => 'Invalid password' }
+    ) if ( $req_user->password ne Clark::Util::Crypt->hash($req_password) );
 
     return $self->render(
         status => 400,
@@ -94,6 +97,7 @@ sub update {
     my $sanitized_user
         = $self->user_repository->find( { id => $self->stash('id') },
         { columns => [qw/name is_admin is_root/] } );
+
     return $self->render( json => $sanitized_user->get_inflated_columns );
 }
 
@@ -102,6 +106,24 @@ sub identify {
     my %user = $self->user_repository->identify( $self->session('user') )
         ->get_inflated_columns;
     return $self->render( json => \%user );
+}
+
+sub find {
+    my $self = shift;
+    return $self->render( json =>
+            Clark::Util::Infalate->many( $self->user_repository->active->all )
+    );
+}
+
+sub delete {
+    my $self = shift;
+    my $req_user
+        = $self->user_repository->find( { id => $self->session('user') } );
+    my $user = $self->user_repository->find( { id => $self->stash('id') } );
+
+    return $self->render(
+        json => { err => 403, msg => 'Only the root user can modify admins' } )
+        if $user->is_root && not( $req_user->is_root );
 }
 
 1;

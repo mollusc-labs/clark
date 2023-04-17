@@ -28,11 +28,10 @@ const clicked = (value: string) => {
 }
 </script>
 <template>
-    <v-card class="mt-2 p0">
+    <v-card class="mt-2 p0" style="height: calc(100% - 373px)">
         <v-content height="inherit">
-            <v-data-table @click:row="clicked" class="elevation-1" :loading="props.loading" :headers="headers"
-                :items="props.logs" items-per-page="15" fixed-header fixed-footer v-model:expanded="state.expanded"
-                show-expand height="50vh">
+            <v-data-table @click:row="clicked" class="elevation-1" :headers="headers" :items="props.logs"
+                items-per-page="15" fixed-header fixed-footer v-model:expanded="state.expanded" show-expand height="50vh">
                 <template v-slot:header="{ props }">
                     <th v-for="head in props.headers" class="font-bold">{{ head.text }}</th>
                 </template>

@@ -34,7 +34,6 @@ const newDashboard = () => {
   } finally {
     state.addDashboardDisabled = false
   }
-
 }
 
 onMounted(() => {
@@ -99,7 +98,7 @@ onMounted(() => {
             <RouterView />
           </v-content>
           <v-content v-if="!dashboards.value.length && router.currentRoute.value.fullPath === '/dashboard'" class=" block
-                    w-full h-100">
+                      w-full h-100">
             <p class="gray-500">
               Please create a new dashboard using the (+) on the left side of your screen.
             </p>

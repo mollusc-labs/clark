@@ -299,11 +299,13 @@ sub startup ($self) {
     }
 
     # Api routes
-    ## Identification routes
+    ## User routes
     $only_authorized_router->get('/api/users/identify')->to('user#identify')
         ->name('identify_user');
     $admin_authorized_router->put('/api/users/:id')->to('user#update')
         ->name('update_user');
+    $admin_authorized_router->get('/api/users')->to('user#find')
+        ->name('find_users');
     ## Log routes
     $authorized_router->websocket('/ws/logs/latest')->to('log#latest_ws')
         ->name('ws_latest_log');

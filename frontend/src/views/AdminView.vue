@@ -4,7 +4,8 @@ import { redirectToLogin } from '@/lib/util/redirect';
 import { user } from '@/lib/util/store';
 import { reactive } from 'vue';
 import { onMounted } from 'vue';
-import Table from '../components/admin/keys/Table.vue'
+import KeyTable from '../components/admin/keys/Table.vue'
+import Users from '../components/admin/users/View.vue'
 
 const state = reactive<{ tab: string }>({
     tab: "keys"
@@ -24,14 +25,13 @@ onMounted(() => {
                 <v-tab value="keys">Api Keys</v-tab>
                 <v-tab value="users">Users</v-tab>
             </v-tabs>
-
             <v-card-text>
                 <v-window v-model="state.tab">
                     <v-window-item value="keys">
-                        <Table></Table>
+                        <KeyTable></KeyTable>
                     </v-window-item>
                     <v-window-item value="users">
-                        <b>TODO: Implement me</b>
+                        <Users></Users>
                     </v-window-item>
                 </v-window>
             </v-card-text>

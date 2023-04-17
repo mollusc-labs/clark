@@ -84,37 +84,11 @@ onMounted(() => {
             <v-data-table class="elevation-1" :loading="state.loading" :headers="headers" :items="state.keys"
                 items-per-page="15" fixed-header fixed-footer height="100%">
                 <template v-slot:top>
-                    <v-toolbar class="bg-white">
-                        <v-dialog v-model="state.showSaveDialog" max-width="500px">
-                            <v-card class="p-3">
-                                <v-card-title>
-                                    Create a new API key
-                                </v-card-title>
-                                <v-card-text>
-                                    <v-container>
-                                        <v-row>
-                                            <v-col>
-                                                <v-text-field v-model="newKey.matcher" label="Matcher"></v-text-field>
-                                            </v-col>
-                                        </v-row>
-                                    </v-container>
-                                </v-card-text>
-                                <v-card-actions>
-                                    <v-spacer></v-spacer>
-                                    <v-btn :disabled="state.lockDialog" variant="text" @click="closeDialog">
-                                        Cancel
-                                    </v-btn>
-                                    <v-btn color="primary" :disabled="state.lockDialog || !newKey.matcher" variant="text"
-                                        @click="saveKey">
-                                        Save
-                                    </v-btn>
-                                </v-card-actions>
-                            </v-card>
-                        </v-dialog>
+                    <div class="w-full flex justify-end">
                         <v-btn color="primary" class="mb-2 primary" @click="() => state.showSaveDialog = true">
                             New API Key
                         </v-btn>
-                    </v-toolbar>
+                    </div>
                 </template>
                 <template @click.stop v-slot:item.value="{ item }">
                     <v-hover>
@@ -149,7 +123,7 @@ onMounted(() => {
                 <v-card>
                     <v-card-title>Delete</v-card-title>
                     <v-card-text>Are you sure you'd like to delete this API key? This will cause all logging attempts using
-                        it do be ignored.</v-card-text>
+                        this key to be ignored.</v-card-text>
                     <v-card-actions>
                         <v-btn text :disabled="state.lockDialog" @click="state.showDeleteDialog = false">Close</v-btn>
                         <v-btn color="red" text :disabled="state.lockDialog || !state.deleteItem"
@@ -159,4 +133,29 @@ onMounted(() => {
             </v-dialog>
         </v-content>
     </v-card>
+    <v-dialog v-model="state.showSaveDialog" max-width="500px">
+        <v-card class="p-3">
+            <v-card-title>
+                Create a new API key
+            </v-card-title>
+            <v-card-text>
+                <v-container>
+                    <v-row>
+                        <v-col>
+                            <v-text-field v-model="newKey.matcher" label="Matcher"></v-text-field>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn :disabled="state.lockDialog" variant="text" @click="closeDialog">
+                    Cancel
+                </v-btn>
+                <v-btn color="primary" :disabled="state.lockDialog || !newKey.matcher" variant="text" @click="saveKey">
+                    Save
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>
