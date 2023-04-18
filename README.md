@@ -5,18 +5,14 @@ A free and open-source logging dashboard, and REST API for `rsyslog` and theoret
 Clark is currently in a work-in-progress state. The following things still need to be done:
 
 - [ ] User and privilege management
-[ ] 
+- [ ] Time boxed dashboards
 
 #### What is done
-[X] Logging via rsyslog
-
-[X] REST API
-
-[X] Log-in
-
-[X] Custom dashboards
-
-[] 
+- [X] Logging via rsyslog
+- [X] REST API
+- [X] Log-in
+- [X] Custom dashboards
+- [X] Api Keys 
 
 ## How to use
 1. Make sure you have Perl >5.10 and the following packages installed:
