@@ -94,15 +94,15 @@ onMounted(() => {
       </v-navigation-drawer>
       <v-main>
         <v-container v-if="!state.loading" class="w-full h-screen overflow-auto align-center m-0" fluid>
-          <v-content v-if="dashboards.value.length || router.currentRoute.value.fullPath !== '/dashboard'">
+          <v-container v-if="dashboards.value.length || router.currentRoute.value.fullPath !== '/dashboard'">
             <RouterView />
-          </v-content>
-          <v-content v-if="!dashboards.value.length && router.currentRoute.value.fullPath === '/dashboard'" class=" block
-                      w-full h-100">
+          </v-container>
+          <v-container v-if="!dashboards.value.length && router.currentRoute.value.fullPath === '/dashboard'" class=" block
+                          w-full h-100">
             <p class="gray-500">
               Please create a new dashboard using the (+) on the left side of your screen.
             </p>
-          </v-content>
+          </v-container>
         </v-container>
         <v-container v-if="state.loading" class="w-fill h-screen align-center m-0 flex">
           <center class="m-auto self-center">

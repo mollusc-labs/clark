@@ -128,11 +128,4 @@ sub today {
         );
 }
 
-sub create {
-    my $self = shift;
-    my $obj  = shift;
-
-    return $self->new_result( { %{$obj}, retrieve_on_insert => 1 } )->insert;
-}
-
 1;

@@ -28,26 +28,24 @@ const clicked = (value: string) => {
 }
 </script>
 <template>
-    <v-card class="mt-2 p0" style="height: calc(100% - 373px)">
-        <v-content height="inherit">
-            <v-data-table @click:row="clicked" class="elevation-1" :headers="headers" :items="props.logs"
-                items-per-page="15" fixed-header fixed-footer v-model:expanded="state.expanded" show-expand height="50vh">
-                <template v-slot:header="{ props }">
-                    <th v-for="head in props.headers" class="font-bold">{{ head.text }}</th>
-                </template>
-                <template @click.stop v-slot:item.severity="{ item }">
-                    <v-chip :color="getColor(item.raw.severity)" class="w-full">
-                        <div class="w-full text-center">{{ translateSeverity(item.raw.severity) }}</div>
-                    </v-chip>
-                </template>
-                <template @click.stop v-slot:expanded-row="{ columns, item }">
-                    <tr>
-                        <td :colspan="columns.length">
-                            <p class="text-gray-600">{{ item.raw.message }}</p>
-                        </td>
-                    </tr>
-                </template>
-            </v-data-table>
-        </v-content>
+    <v-card height="inherit" class="mt-2 h-fit p-0">
+        <v-data-table @click:row="clicked" class="elevation-1" :headers="headers" :items="props.logs" items-per-page="15"
+            fixed-header fixed-footer v-model:expanded="state.expanded" show-expand>
+            <template v-slot:header="{ props }">
+                <th v-for="head in props.headers" class="font-bold">{{ head.text }}</th>
+            </template>
+            <template @click.stop v-slot:item.severity="{ item }">
+                <v-chip :color="getColor(item.raw.severity)" class="w-full">
+                    <div class="w-full text-center">{{ translateSeverity(item.raw.severity) }}</div>
+                </v-chip>
+            </template>
+            <template @click.stop v-slot:expanded-row="{ columns, item }">
+                <tr>
+                    <td :colspan="columns.length">
+                        <p class="text-gray-600">{{ item.raw.message }}</p>
+                    </td>
+                </tr>
+            </template>
+        </v-data-table>
     </v-card>
 </template>

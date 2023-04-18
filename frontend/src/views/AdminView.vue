@@ -20,7 +20,7 @@ onMounted(() => {
 <template>
     <v-card>
         <v-card-title>Admin Zone</v-card-title>
-        <v-content class="h-screen">
+        <v-container class="h-screen">
             <v-tabs v-model="state.tab" bg-color="primary">
                 <v-tab value="keys">Api Keys</v-tab>
                 <v-tab value="users">Users</v-tab>
@@ -35,6 +35,6 @@ onMounted(() => {
                     </v-window-item>
                 </v-window>
             </v-card-text>
-        </v-content>
+        </v-container>
     </v-card>
 </template>

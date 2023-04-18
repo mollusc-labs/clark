@@ -7,5 +7,6 @@ export interface Query {
     text?: string, // Full-text ftw
     process_id?: string,
     severity?: Severity,
-    date?: Date
+    to?: Date,
+    from?: Date
 }

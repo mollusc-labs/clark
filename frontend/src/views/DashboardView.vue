@@ -27,7 +27,14 @@ const state = reactive({
   saving: false,
   showEditName: false,
   editingName: false,
-  newName: '' as string | undefined
+  newName: '' as string | undefined,
+})
+
+const timeQuery = reactive({
+  toDate: undefined as Date | undefined,
+  toTime: undefined as number | undefined,
+  fromDate: new Date().toISOString().substring(0, 10),
+  fromTime: undefined as number | undefined
 })
 
 const query = reactive<Query>({
@@ -36,8 +43,9 @@ const query = reactive<Query>({
   text: undefined,
   hostname: undefined,
   process_id: undefined,
-  date: undefined,
-  severity: undefined
+  severity: undefined,
+  to: undefined,
+  from: undefined
 })
 
 const updateRaw = () => {
@@ -55,15 +63,16 @@ const updateRaw = () => {
 
 const update = () => {
   state.loading = true
-  state.newName = selectedDashboard.value?.name;
+  state.newName = selectedDashboard.value?.name
 
   const newQuery: Query = degenerateQuery();
-  query.date = newQuery.date;
-  query.hostname = newQuery.hostname;
-  query.process_id = newQuery.process_id;
-  query.service_name = newQuery.service_name;
-  query.size = newQuery.size;
-  query.text = newQuery.text;
+  query.to = newQuery.to
+  query.from = newQuery.from
+  query.hostname = newQuery.hostname
+  query.process_id = newQuery.process_id
+  query.service_name = newQuery.service_name
+  query.size = newQuery.size
+  query.text = newQuery.text
 
   if (query.severity)
     tempSeverity.value = severityMap.get(query.severity) as string;
@@ -103,7 +112,8 @@ const reset = () => {
   query.hostname = undefined
   query.severity = undefined
   query.text = undefined
-  query.date = undefined
+  query.to = undefined
+  query.from = undefined
   query.size = 100
   tempSeverity.value = 'Any'
 }
@@ -172,7 +182,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-card>
+  <v-card style="">
     <v-card-title class="flex flex-row justify-between w-full">
       <div v-show="!state.editingName" @mouseover="state.showEditName = true" @mouseleave="state.showEditName = false"
         @click="state.editingName = true" :color="state.showEditName ? 'primary' : 'black'" class="cursor-pointer w-fit">
@@ -184,62 +194,73 @@ onMounted(() => {
           v-on:keyup.enter="() => state.editingName = false"></v-text-field>
       </div>
     </v-card-title>
-    <v-content>
-      <v-container @click="state.editingName = false">
-        <v-switch @click.stop label="Real-time updates" v-model="realtime" color="blue"></v-switch>
-        <v-row>
-          <v-col cols="16" md="2">
-            <v-autocomplete :items="state.service_names" v-model="query.service_name" density="compact"
-              label="Service Name"></v-autocomplete> </v-col>
-          <v-col cols="16" md="2">
-            <v-autocomplete :items="state.hostnames" v-model="query.hostname" density="compact"
-              label="Hostname"></v-autocomplete>
-          </v-col>
-          <v-col cols="16" md="2">
-            <v-text-field density="compact" v-model="query.process_id" label="Process ID"></v-text-field>
-          </v-col>
-          <v-col cols="16" md="2">
-            <v-select density="compact" item-text="name" item-value="severity" :items="severities" v-model="tempSeverity"
-              label="Severity"></v-select>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="16" md="6">
-            <v-text-field label="Search" density="compact" v-model="query.text"></v-text-field>
-          </v-col>
-          <v-col cols="16" md="2">
-            <v-text-field density="compact" v-model="query.size" type="number" label="Query Size"></v-text-field>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col class="flex flex-row justify-between">
-            <div>
-              <v-btn color="primary" :disabled="!!state.saving" class="mr-2" @click="() => updateQuery()">
-                Query
-                <v-tooltip activator="parent" location="bottom" text="Search for logs that meet the criteria"></v-tooltip>
-              </v-btn>
-              <v-btn color="teal" :disabled="!!state.saving" class="mr-2" @click="() => saveDashboard()">
-                Save
-                <v-tooltip activator="parent" location="bottom" text="Save this dashboard"></v-tooltip>
-              </v-btn>
-              <v-btn :disabled="!!state.saving" @click="() => { reset(); updateQuery() }">
-                Clear
-                <v-tooltip activator="parent" location="bottom" text="Clear all filters"></v-tooltip>
-              </v-btn>
-            </div>
-            <v-btn @click="() => deleteDashboard()">
-              <v-icon icon="mdi-trash-can" color="red" variant="flat"></v-icon>
-              <v-tooltip activator="parent" location="bottom" text="Delete this dashboard"></v-tooltip>
+    <v-container @click="state.editingName = false">
+      <v-row>
+        <v-col cols="16" md="2">
+          <v-switch @click.stop label="Real-time updates" v-model="realtime" color="blue"></v-switch>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="16" md="2">
+          <v-autocomplete :items="state.service_names" v-model="query.service_name" density="compact"
+            label="Service Name"></v-autocomplete> </v-col>
+        <v-col cols="16" md="2">
+          <v-autocomplete :items="state.hostnames" v-model="query.hostname" density="compact"
+            label="Hostname"></v-autocomplete>
+        </v-col>
+        <v-col cols="16" md="2">
+          <v-text-field density="compact" v-model="query.process_id" label="Process ID"></v-text-field>
+        </v-col>
+        <v-col cols="16" md="2">
+          <v-select density="compact" item-text="name" item-value="severity" :items="severities" v-model="tempSeverity"
+            label="Severity"></v-select>
+        </v-col>
+        <v-col cols="16" md="2">
+          <v-menu persistent>
+            <template v-slot:activator="{ isActive, props }">
+              <v-text-field v-model="timeQuery.fromDate" density="compact" label="From Date" prepend-icon="event" readonly
+                v-bind="props" v-on="isActive" class="w-fill"></v-text-field>
+            </template>
+            <template>
+              <v-date-picker v-model="timeQuery.fromDate" type="month" scrollable />
+            </template>
+          </v-menu>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="16" md="6">
+          <v-text-field label="Search" density="compact" v-model="query.text"></v-text-field>
+        </v-col>
+        <v-col cols="16" md="2">
+          <v-text-field density="compact" v-model="query.size" type="number" label="Query Size"></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col class="flex flex-row justify-between">
+          <div>
+            <v-btn color="primary" :disabled="!!state.saving" class="mr-2" @click="() => updateQuery()">
+              Query
+              <v-tooltip activator="parent" location="bottom" text="Search for logs that meet the criteria"></v-tooltip>
             </v-btn>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-content>
+            <v-btn color="teal" :disabled="!!state.saving" class="mr-2" @click="() => saveDashboard()">
+              Save
+              <v-tooltip activator="parent" location="bottom" text="Save this dashboard"></v-tooltip>
+            </v-btn>
+            <v-btn :disabled="!!state.saving" @click="() => { reset(); updateQuery() }">
+              Clear
+              <v-tooltip activator="parent" location="bottom" text="Clear all filters"></v-tooltip>
+            </v-btn>
+          </div>
+          <v-btn @click="() => deleteDashboard()">
+            <v-icon icon="mdi-trash-can" color="red" variant="flat"></v-icon>
+            <v-tooltip activator="parent" location="bottom" text="Delete this dashboard"></v-tooltip>
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
   </v-card>
-  <Table v-if="!state.loading" class="flex-grow" :loading="state.loading" :logs="state.logs"></Table>
-  <v-card v-if="state.loading" class="w-full mt-2 flex justify-center content-center" style="height: calc(100% - 12vh)">
-    <center class="align-center">
-      <v-progress-circular indeterminate color="primary" size="70"></v-progress-circular>
-    </center>
-  </v-card>
+  <div class="h-fit">
+    <Table v-if="!state.loading" :loading="state.loading" :logs="state.logs"></Table>
+  </div>
+  <v-progress-circular indeterminate color="primary" size="70"></v-progress-circular>
 </template>

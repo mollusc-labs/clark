@@ -119,11 +119,23 @@ sub create {
     $json->{'process_id'} = 'rest' unless $json->{'process_id'};
 
     $json->{'id'} = Data::UUID->new->create_str;
-    my $log = { $self->log_repository->new_result($json)
-            ->insert->get_inflated_columns };
-    $self->app->log->info( 'Created log via REST with id: ' . $log->id );
+
+    # Test if API key matcher matches service name
+    unless ( $json->{'service_name'} =~ $self->stash('api_key')->{'matcher'} ) {
+        return $self->render(
+            json =>
+                { err => 401, msg => 'Service name not authorized by matcher' },
+            status => 401
+        );
+    }
+
+    my $log = { $self->log_repository->create($json)->get_inflated_columns };
     delete $log->{'id'};
-    $self->render( status => 201, json => $log );
+    $self->app->log->info( 'Created log via REST with id: ' . $log->{'id'} );
+    $self->render(
+        status => 201,
+        json   => $log
+    );
 }
 
 sub service_names {

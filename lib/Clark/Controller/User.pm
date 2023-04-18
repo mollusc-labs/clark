@@ -90,7 +90,9 @@ sub update {
     return $self->render(
         status => 400,
         json   => { err => 400, msg => 'Username already in use' }
-    ) unless $self->_validate_username_uniqueness($username);
+        )
+        if $username ne $user->name
+        && not( $self->_validate_username_uniqueness($username) );
 
     $user->update( $self->req->json );
 

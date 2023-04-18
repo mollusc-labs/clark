@@ -12,6 +12,7 @@ use Carp q<croak>;
 use Bread::Board;
 use Clark::Util::Crypt;
 use Crypt::JWT qw(decode_jwt);
+use Data::Dumper;
 
 our $VERSION = '0.1';
 
@@ -242,14 +243,24 @@ sub startup ($self) {
                 = ( split /\s/, $c->req->headers->to_hash->{'X-CLARK'} || '' )
                 [-1];
 
-            my $header;
-            my $payload;
+            unless ($req_api_key) {
+                $c->render(
+                    json   => { err => 401, msg => 'Unauthorized' },
+                    status => 401
+                );
+                return undef;
+            }
+
+            my $data;
             eval {
-                ( $header, $payload ) = decode_jwt(
+                $data = decode_jwt(
                     token => $req_api_key,
                     key   => $ENV{'CLARK_API_KEY'}
                 );
             };
+
+            $c->session( api_key_id => $data->{'id'} );
+
             unless ( $req_api_key && not($@) ) {
                 $c->render(
                     json   => { err => 401, msg => 'Unauthorized' },
@@ -258,7 +269,20 @@ sub startup ($self) {
                 return undef;
             }
 
-            return defined $c->key_repository->by_key($req_api_key);
+            my $key = { $c->key_repository->by_key($req_api_key)->get_columns };
+            $c->stash( api_key => $key );
+
+            unless ( defined $key ) {
+                $c->render(
+                    json   => { err => 401, msg => 'Unauthorized' },
+                    status => 401
+                );
+                $c->app->log->warn(
+                    'Attempted use of revoked key: ' . $key->value );
+                return undef;
+            }
+
+            return 1;
         }
     );
 

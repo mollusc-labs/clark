@@ -1,6 +1,23 @@
 # Clark
 A free and open-source logging dashboard, and REST API for `rsyslog` and theoretically any other syslog-daemon.
 
+## TODO
+Clark is currently in a work-in-progress state. The following things still need to be done:
+
+- [ ] User and privilege management
+[ ] 
+
+#### What is done
+[X] Logging via rsyslog
+
+[X] REST API
+
+[X] Log-in
+
+[X] Custom dashboards
+
+[] 
+
 ## How to use
 1. Make sure you have Perl >5.10 and the following packages installed:
     - On Ubuntu you can install them like this:

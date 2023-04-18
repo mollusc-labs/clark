@@ -10,7 +10,7 @@ sub active {
 }
 
 sub by_key {
-    return shift->active->find( { key => pop } );
+    return shift->active->find( { value => pop } );
 }
 
 sub by_id {
