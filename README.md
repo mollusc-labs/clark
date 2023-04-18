@@ -6,8 +6,6 @@ Clark is currently in a work-in-progress state. The following things still need 
 
 - [ ] User and privilege management
 - [ ] Time boxed dashboards
-
-#### What is done
 - [X] Logging via rsyslog
 - [X] REST API
 - [X] Log-in
