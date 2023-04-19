@@ -1,6 +1,6 @@
 % layout 'default';
 %= form_for 'login', method => 'POST' => begin
-<div class="demo-card-wide mdl-card mdl-shadow--2dp" style="padding: 12px; margin: auto">
+<div class="demo-card-wide mdl-card mdl-shadow--2dp" style="padding: 12px; margin: auto; margin-top: 12px;">
   <div class="mdl-card__title" style="margin: auto">
     <h2 class="mdl-card__title-text" style="color: gray">Login to Clark</h2>
   </div>
