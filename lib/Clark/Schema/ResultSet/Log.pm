@@ -12,6 +12,8 @@ sub by_params {
     my $self = shift;
     my $args = {@_};
 
+    my $dtf = $self->result_source->storage->datetime_parser;
+
     my $size = $args->{'size'};
     my $page = $args->{'page'};
 
@@ -21,9 +23,8 @@ sub by_params {
     delete $args->{'page'};
     delete $args->{'size'};
 
-    if ( $args->{'text'} ) {
-
    # Custom full-text search for text fields: message, service_name and hostname
+    if ( $args->{'text'} ) {
         return $self->result_source->storage->dbh_do(
             sub {
                 my $s = shift;
@@ -31,15 +32,43 @@ sub by_params {
                 my $t = $args->{'text'};
                 delete $args->{'text'};
 
-                my $q    = join ' ', map {"AND $_ = ?"} ( keys %{$args} );
+                my $to
+                    = $args->{'to'} || $dtf->format_datetime( DateTime->now );
+                my $from = $args->{'from'}
+                    || $dtf->format_datetime(
+                    DateTime->from_epoch( epoch => 0 ) );
+
+                delete $args->{'from'};
+                delete $args->{'to'};
+
+                my $q
+                    = ( join ' ', map {"AND $_ = ?"} ( keys %{$args} ) ) || '';
+
                 my $rows = $d->selectall_arrayref(
                     qq[
                     SELECT * FROM log WHERE MATCH (message, service_name, hostname)
-                    AGAINST (?) $q ORDER BY created_at DESC LIMIT ?
-                ], { Slice => {} }, values %{$args}, $t, $size
+                    AGAINST (?) $q AND (created_at BETWEEN ? AND ?) ORDER BY created_at DESC LIMIT ?
+                    ], { Slice => {} }, $t, values %{$args}, $from, $to, $size
                 );
 
                 return map { $self->new_result($_) } @{$rows};
+            }
+        );
+    }
+
+    if ( $args->{'from'} ) {
+        my $to   = $args->{'to'} || $dtf->format_datetime( DateTime->now );
+        my $from = $args->{'from'}
+            || $dtf->format_datetime( DateTime->from_epoch( epoch => 0 ) );
+
+        delete $args->{'to'};
+        delete $args->{'from'};
+
+        return $self->from_date( $from, $to, $size )->search(
+            $args,
+            {   page => $page,
+                rows => $size,
+                { order_by => { -desc => 'created_at' } }
             }
         );
     }
@@ -71,22 +100,16 @@ sub by_service {
 
 sub from_date {
     my $self = shift;
-    my $from = shift || DateTime->epoch( epoch => 0 );
-    my $to   = shift || DateTime->now;
+    my $dtf  = $self->result_source->storage->datetime_parser;
+    my $from = shift || $dtf->parse_datetime( DateTime->epoch( epoch => 0 ) );
+    my $to   = shift || $dtf->parse_datetime( DateTime->now );
     my $rows = pop;
 
     $rows = 20 unless looks_like_number $rows;
 
-    # Need to inflate date-times for searching, using datetime_parser
-    my $dtf = $self->result_source->storage->datetime_parser;
     return $self->search(
-        {   created_at => {
-                -between => [
-                    $dtf->format_datetime($from), $dtf->format_datetime($to)
-                ]
-            }
-        },
-        {   order_by => { -desc => 'created_at' },
+        { created_at => { -between => [ $from, $to ] } },
+        {   order_by => { -asc => 'created_at' },
             rows     => $rows
         }
     );

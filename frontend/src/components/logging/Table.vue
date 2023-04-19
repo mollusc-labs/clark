@@ -8,7 +8,7 @@ const state = reactive({
     expanded: [] as string[]
 });
 
-const props = defineProps<{ logs: Log[], loading: boolean }>()
+const props = defineProps<{ logs: Log[] }>()
 const headers = [
     { title: 'Service', align: 'start', key: 'service_name' },
     { title: 'Hostname', align: 'start', key: 'hostname' },

@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue'
 import { time } from '@/lib/util/time'
 import { dashboards, selectedDashboard } from '@/lib/util/store'
 import Table from '@/components/logging/Table.vue'
 import type { Log } from '@/lib/model/log'
-import { watch } from 'vue'
-import { ref } from 'vue'
-import TimeGraph from '@/components/logging/TimeGraph.vue'
+import { watch, ref, onMounted, reactive } from 'vue'
 import { get, del, put } from '@/lib/util/http'
 import type { Query } from '@/lib/model/query'
 import { severityMap, invertedSeverityMap } from '@/lib/util/severityTranslation'
@@ -31,10 +28,10 @@ const state = reactive({
 })
 
 const timeQuery = reactive({
-  toDate: undefined as Date | undefined,
-  toTime: undefined as number | undefined,
-  fromDate: new Date().toISOString().substring(0, 10),
-  fromTime: undefined as number | undefined
+  toDate: undefined as string | undefined,
+  toTime: undefined as string | undefined,
+  fromDate: undefined as string | undefined,
+  fromTime: undefined as string | undefined
 })
 
 const query = reactive<Query>({
@@ -48,17 +45,17 @@ const query = reactive<Query>({
   from: undefined
 })
 
-const updateRaw = () => {
-  return Promise.all([
+const executeUpdate = async () => {
+  const [logs, services, hosts] = await Promise.all([
     get<Log[]>('/api/logs' + selectedDashboard.value?.query),
     get<string[]>('/api/logs/services'),
     get<string[]>('/api/logs/hosts')
-  ]).then(([logs, services, hosts]) => {
-    state.logs = logs
-    state.service_names = services.filter(t => t)
-    state.hostnames = hosts
-    state.loading = false
-  })
+  ])
+
+  state.logs = logs
+  state.service_names = services.filter(t => t)
+  state.hostnames = hosts
+  state.loading = false
 }
 
 const update = () => {
@@ -77,7 +74,44 @@ const update = () => {
   if (query.severity)
     tempSeverity.value = severityMap.get(query.severity) as string;
 
-  updateRaw()
+  if (query.to !== undefined) {
+    const [date, time] = query.to.split(/\s/)
+    timeQuery.toDate = date
+    timeQuery.toTime = time
+  } else {
+    timeQuery.toDate = undefined
+    timeQuery.toTime = undefined
+  }
+
+  if (query.from !== undefined) {
+    const [date, time] = query.from.split(/\s/)
+    timeQuery.fromDate = date
+    timeQuery.fromTime = time
+  } else {
+    timeQuery.fromDate = undefined
+    timeQuery.fromTime = undefined
+  }
+
+  executeUpdate()
+}
+
+const generateTime = () => {
+  // NOTE: Perl's time goes in unix sec not unix ms
+  if (timeQuery.fromDate) {
+    const from = timeQuery.fromDate + ' ' + (timeQuery.fromTime || '00:00')
+    if (from)
+      query.from = from
+  } else {
+    query.from = undefined
+  }
+
+  if (timeQuery.toDate) {
+    const to = timeQuery.toDate + ' ' + (timeQuery.toTime || '00:00')
+    if (to)
+      query.to = to
+  } else {
+    query.to = undefined
+  }
 }
 
 const generateQuery = () => {
@@ -119,7 +153,7 @@ const reset = () => {
 }
 
 const realtimeUpdate = () => {
-  interval.value = setInterval(updateRaw, 2500)
+  interval.value = setInterval(executeUpdate, 2500)
 }
 
 const realtimeCancel = () => {
@@ -166,6 +200,7 @@ onMounted(() => {
 
   watch(() => selectedDashboard.value, () => {
     state.logs = []
+    reset()
     update()
   })
 
@@ -178,6 +213,8 @@ onMounted(() => {
       selectedDashboard.value.name = state.newName || ''
     }
   })
+
+  watch(() => timeQuery, generateTime, { deep: true })
 });
 </script>
 
@@ -216,15 +253,12 @@ onMounted(() => {
             label="Severity"></v-select>
         </v-col>
         <v-col cols="16" md="2">
-          <v-menu persistent>
-            <template v-slot:activator="{ isActive, props }">
-              <v-text-field v-model="timeQuery.fromDate" density="compact" label="From Date" prepend-icon="event" readonly
-                v-bind="props" v-on="isActive" class="w-fill"></v-text-field>
-            </template>
-            <template>
-              <v-date-picker v-model="timeQuery.fromDate" type="month" scrollable />
-            </template>
-          </v-menu>
+          <v-text-field v-model="timeQuery.fromDate" density="compact" type="date" label="From"
+            class="w-fill"></v-text-field>
+        </v-col>
+        <v-col cols="16" md="2">
+          <v-text-field :disabled="!timeQuery.fromDate" v-model="timeQuery.fromTime" density="compact" type="time"
+            class="w-fill"></v-text-field>
         </v-col>
       </v-row>
       <v-row>
@@ -233,6 +267,13 @@ onMounted(() => {
         </v-col>
         <v-col cols="16" md="2">
           <v-text-field density="compact" v-model="query.size" type="number" label="Query Size"></v-text-field>
+        </v-col>
+        <v-col cols="16" md="2">
+          <v-text-field v-model="timeQuery.toDate" density="compact" type="date" label="To" class="w-fill"></v-text-field>
+        </v-col>
+        <v-col cols="16" md="2">
+          <v-text-field :disabled="!timeQuery.toDate" v-model="timeQuery.toTime" density="compact" type="time"
+            class="w-fill"></v-text-field>
         </v-col>
       </v-row>
       <v-row>
@@ -259,8 +300,9 @@ onMounted(() => {
       </v-row>
     </v-container>
   </v-card>
-  <div class="h-fit">
-    <Table v-if="!state.loading" :loading="state.loading" :logs="state.logs"></Table>
+  <div class="h-fit w-full">
+    <Table v-if="!state.loading" :logs="state.logs"></Table>
+    <v-progress-circular indeterminate color="primary" size="70" class="block m-auto"
+      v-if="state.loading"></v-progress-circular>
   </div>
-  <v-progress-circular indeterminate color="primary" size="70"></v-progress-circular>
 </template>

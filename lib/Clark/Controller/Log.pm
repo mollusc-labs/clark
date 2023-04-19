@@ -10,27 +10,12 @@ use Clark::Util::Inflate;
 use Data::Dumper;
 use DateTime;
 use Data::UUID;
+use Scalar::Util qw(looks_like_number);
 
 sub _find {
     my $self   = shift;
     my $params = $self->req->params->to_hash;
-    if (   $params->{'from'}
-        && $params->{'to'} )
-    {
-        my $from = DateTime->from_epoch( epoch => $params->{'from'} )
-            || DateTime->from_epoch( epoch => 0 );
-        my $to
-            = DateTime->from_epoch( epoch => $params->{'to'} ) || DateTime->now;
-        delete $params->{'from'};
-        delete $params->{'to'};
-        return $self->log_repository->from_date( $from, $to )
-            ->by_params( %{$params} );
-    }
-    else {
-        delete $params->{'to'};
-        delete $params->{'from'};
-        return $self->log_repository->by_params( %{$params} );
-    }
+    return $self->log_repository->by_params( %{$params} );
 }
 
 sub find {
