@@ -13,6 +13,7 @@ Clark is currently in a work-in-progress state. The following things still need 
 - [X] Time boxed dashboards
 - [X] Logging via rsyslog
 - [X] REST API
+- [ ] Graphs
 - [X] Log-in
 - [X] Custom dashboards
 - [X] Api Keys 
