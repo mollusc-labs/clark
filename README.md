@@ -7,7 +7,7 @@ To get started, checkout the `QUICKSTART.md` file at the root of the project.
 ## TODO
 Clark is currently in a work-in-progress state. The following things still need to be done:
 
-- [ ] Make login page nice
+- [X] Make login page nice
 - [ ] User and privilege management
 - [ ] Ability to change your password
 - [X] Time boxed dashboards
