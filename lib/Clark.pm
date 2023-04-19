@@ -33,11 +33,8 @@ my $c = container 'Clark' => as {
             block     => sub {
                 require Clark::Schema;
                 my $s = shift;
-                return Clark::Schema->connect(
-                    $s->param('dsn'),
-                    $s->param('username'),
-                    $s->param('password')
-                ) || croak 'Could not connect to database.';
+                return Clark::Schema->connect( $s->param('dsn'), $s->param('username'), $s->param('password') )
+                    || croak 'Could not connect to database.';
             },
             dependencies => [ 'dsn', 'username', 'password' ]
         );
@@ -76,8 +73,7 @@ my $c = container 'Clark' => as {
 no Bread::Board;
 
 my $api_key = $ENV{'CLARK_API_KEY'}
-    || croak
-    'You need to set the "CLARK_API_KEY" environment variable. See QUICKSTART to get started.';
+    || croak 'You need to set the "CLARK_API_KEY" environment variable. See QUICKSTART to get started.';
 
 sub startup ($self) {
 
@@ -85,21 +81,16 @@ sub startup ($self) {
 
     # Database boilerplate
     my $dbh = $c->resolve( service => 'Database/dbh' );
-    $self->helper( user_repository => sub { return $dbh->resultset('User') } );
-    $self->helper( log_repository  => sub { return $dbh->resultset('Log') } );
-    $self->helper( key_repository  => sub { return $dbh->resultset('Key') } );
-    $self->helper(
-        dashboard_repository => sub { return $dbh->resultset('Dashboard') } );
-    $self->helper(
-        datetime_parser => sub { return $dbh->storage->datetime_parser } );
+    $self->helper( user_repository      => sub { return $dbh->resultset('User') } );
+    $self->helper( log_repository       => sub { return $dbh->resultset('Log') } );
+    $self->helper( key_repository       => sub { return $dbh->resultset('Key') } );
+    $self->helper( dashboard_repository => sub { return $dbh->resultset('Dashboard') } );
+    $self->helper( datetime_parser      => sub { return $dbh->storage->datetime_parser } );
 
     # Other dependencies
-    $self->helper( dashboard_validator =>
-            sub { return $c->resolve( service => 'Validator/dashboard' ) } );
-    $self->helper( log_validator =>
-            sub { return $c->resolve( service => 'Validator/log' ) } );
-    $self->helper( key_validator =>
-            sub { return $c->resolve( service => 'Validator/key' ) } );
+    $self->helper( dashboard_validator => sub { return $c->resolve( service => 'Validator/dashboard' ) } );
+    $self->helper( log_validator       => sub { return $c->resolve( service => 'Validator/log' ) } );
+    $self->helper( key_validator       => sub { return $c->resolve( service => 'Validator/key' ) } );
 
     state $known_errors = {
         400 => { err => 400, msg => 'Bad Request' },
@@ -166,7 +157,7 @@ sub startup ($self) {
     my $only_authorized_router = $router->under(
         '/' => sub ($c) {
 
-           # Web sockets dont carry sessions, they've already been authenticated
+            # Web sockets dont carry sessions, they've already been authenticated
             return 1 if $c->tx->is_websocket;
 
             # For SPA requests
@@ -180,9 +171,7 @@ sub startup ($self) {
                 }
 
                 my $uid = $c->session('user');
-                if ( my $user
-                    = $dbh->resultset('User')->find( { id => $uid } ) )
-                {
+                if ( my $user = $dbh->resultset('User')->find( { id => $uid } ) ) {
                     my %user = $user->get_columns;
                     delete %user{'password'};
                     $c->stash( user    => \%user );
@@ -205,7 +194,7 @@ sub startup ($self) {
     my $authorized_router = $router->under(
         '/' => sub ($c) {
 
-           # Web sockets dont carry sessions, they've already been authenticated
+            # Web sockets dont carry sessions, they've already been authenticated
             return 1 if $c->tx->is_websocket;
 
             # For SPA requests
@@ -219,11 +208,8 @@ sub startup ($self) {
                 }
 
                 my $uid = $c->session('user');
-                if (my $user = $dbh->resultset('User')->find(
-                        { id      => $uid },
-                        { columns => [qw/name is_admin last_login/] }
-                    )
-                    )
+                if ( my $user
+                    = $dbh->resultset('User')->find( { id => $uid }, { columns => [qw/name is_admin last_login/] } ) )
                 {
                     my %user = $user->get_columns;
                     $c->stash( user    => \%user );
@@ -239,9 +225,7 @@ sub startup ($self) {
             }
 
             # Header should be in form: 'Bearer <API-JWT>'
-            my $req_api_key
-                = ( split /\s/, $c->req->headers->to_hash->{'X-CLARK'} || '' )
-                [-1];
+            my $req_api_key = ( split /\s/, $c->req->headers->to_hash->{'X-CLARK'} || '' )[-1];
 
             unless ($req_api_key) {
                 $c->render(
@@ -252,12 +236,7 @@ sub startup ($self) {
             }
 
             my $data;
-            eval {
-                $data = decode_jwt(
-                    token => $req_api_key,
-                    key   => $ENV{'CLARK_API_KEY'}
-                );
-            };
+            eval { $data = decode_jwt( token => $req_api_key, key => $ENV{'CLARK_API_KEY'} ); };
 
             $c->session( api_key_id => $data->{'id'} );
 
@@ -277,8 +256,7 @@ sub startup ($self) {
                     json   => { err => 401, msg => 'Unauthorized' },
                     status => 401
                 );
-                $c->app->log->warn(
-                    'Attempted use of revoked key: ' . $key->value );
+                $c->app->log->warn( 'Attempted use of revoked key: ' . $key->value );
                 return undef;
             }
 
@@ -307,60 +285,40 @@ sub startup ($self) {
     $router->any('/logout')->to('clark#logout')->name('clark_logout');
 
     # User routes
-    $only_authorized_router->post('/change-password')
-        ->to('clark#change_password')->name('clark_change_password');
-    $only_authorized_router->post('/update-user')->to('clark#update_user')
-        ->name('clark_update_user');
+    $only_authorized_router->post('/change-password')->to('clark#change_password')->name('clark_change_password');
+    $only_authorized_router->post('/update-user')->to('clark#update_user')->name('clark_update_user');
 
     # Dashboard routes
     if ( $ENV{'CLARK_PRODUCTION'} ) {
-        $only_authorized_router->get('/dashboard')->to('dashboard#index')
-            ->name('dashboard_index');
+        $only_authorized_router->get('/dashboard')->to('dashboard#index')->name('dashboard_index');
     }
     else {
-        $only_authorized_router->get('/dashboard')->to('dashboard#dev')
-            ->name('dashboard_dev');
+        $only_authorized_router->get('/dashboard')->to('dashboard#dev')->name('dashboard_dev');
     }
 
     # Api routes
     ## User routes
-    $only_authorized_router->get('/api/users/identify')->to('user#identify')
-        ->name('identify_user');
-    $admin_authorized_router->put('/api/users/:id')->to('user#update')
-        ->name('update_user');
-    $admin_authorized_router->get('/api/users')->to('user#find')
-        ->name('find_users');
+    $only_authorized_router->get('/api/users/identify')->to('user#identify')->name('identify_user');
+    $admin_authorized_router->put('/api/users/:id')->to('user#update')->name('update_user');
+    $admin_authorized_router->get('/api/users')->to('user#find')->name('find_users');
     ## Log routes
-    $authorized_router->websocket('/ws/logs/latest')->to('log#latest_ws')
-        ->name('ws_latest_log');
+    $authorized_router->websocket('/ws/logs/latest')->to('log#latest_ws')->name('ws_latest_log');
     $authorized_router->post('/api/logs')->to('log#create')->name('create_log');
     $authorized_router->get('/api/logs')->to('log#find')->name('find_log');
-    $authorized_router->get('/api/logs/latest')->to('log#latest')
-        ->name('latest_log');
-    $authorized_router->get('/api/logs/today')->to('log#today')
-        ->name('today_log');
-    $authorized_router->get('/api/logs/count')->to('log#count')
-        ->name('count_log');
-    $authorized_router->get('/api/logs/services')->to('log#service_names')
-        ->name('service_names_log');
-    $authorized_router->get('/api/logs/hosts')->to('log#hostnames')
-        ->name('hostnames_log');
+    $authorized_router->get('/api/logs/latest')->to('log#latest')->name('latest_log');
+    $authorized_router->get('/api/logs/today')->to('log#today')->name('today_log');
+    $authorized_router->get('/api/logs/count')->to('log#count')->name('count_log');
+    $authorized_router->get('/api/logs/services')->to('log#service_names')->name('service_names_log');
+    $authorized_router->get('/api/logs/hosts')->to('log#hostnames')->name('hostnames_log');
     ## Dashboard routes
-    $authorized_router->get('/api/dashboards')->to('dashboard#find')
-        ->name('find_dashboard');
-    $authorized_router->post('/api/dashboards')->to('dashboard#create')
-        ->name('create_dashboard');
-    $authorized_router->put('/api/dashboards/:id')->to('dashboard#update')
-        ->name('update_dashboard');
-    $authorized_router->delete('/api/dashboards/:id')->to('dashboard#delete')
-        ->name('delete_dashboard');
+    $authorized_router->get('/api/dashboards')->to('dashboard#find')->name('find_dashboard');
+    $authorized_router->post('/api/dashboards')->to('dashboard#create')->name('create_dashboard');
+    $authorized_router->put('/api/dashboards/:id')->to('dashboard#update')->name('update_dashboard');
+    $authorized_router->delete('/api/dashboards/:id')->to('dashboard#delete')->name('delete_dashboard');
     ## API Key routes
-    $admin_authorized_router->get('/api/keys')->to('key#find')
-        ->name('find_key');
-    $admin_authorized_router->post('/api/keys')->to('key#create')
-        ->name('create_key');
-    $admin_authorized_router->delete('/api/keys/:id')->to('key#delete')
-        ->name('delete_key');
+    $admin_authorized_router->get('/api/keys')->to('key#find')->name('find_key');
+    $admin_authorized_router->post('/api/keys')->to('key#create')->name('create_key');
+    $admin_authorized_router->delete('/api/keys/:id')->to('key#delete')->name('delete_key');
 
     $self->app->log($log);
 }

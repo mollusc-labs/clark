@@ -30,8 +30,8 @@ sub create {
 }
 
 sub update_password {
-    my $self = shift;
-    my $user = $self->user_repository->find( { id => $self->session('user') } );
+    my $self         = shift;
+    my $user         = $self->user_repository->find( { id => $self->session('user') } );
     my $old_password = $self->req->json->{'old_password'};
     my $new_password = $self->req->json->{'new_password'};
 
@@ -55,7 +55,7 @@ sub update {
     my $user     = $self->user_repository->find( { id => $self->stash('id') } );
 
     return $self->render(
-        json => { err => 403, msg => 'You cannot modify other elevated users' },
+        json   => { err => 403, msg => 'You cannot modify other elevated users' },
         status => 403
         )
         if ( $user->is_root
@@ -97,24 +97,20 @@ sub update {
     $user->update( $self->req->json );
 
     my $sanitized_user
-        = $self->user_repository->find( { id => $self->stash('id') },
-        { columns => [qw/name is_admin is_root/] } );
+        = $self->user_repository->find( { id => $self->stash('id') }, { columns => [qw/name is_admin is_root/] } );
 
     return $self->render( json => $sanitized_user->get_inflated_columns );
 }
 
 sub identify {
     my $self = shift;
-    my %user = $self->user_repository->identify( $self->session('user') )
-        ->get_inflated_columns;
+    my %user = $self->user_repository->identify( $self->session('user') )->get_inflated_columns;
     return $self->render( json => \%user );
 }
 
 sub find {
     my $self = shift;
-    return $self->render( json =>
-            Clark::Util::Infalate->many( $self->user_repository->active->all )
-    );
+    return $self->render( json => Clark::Util::Infalate->many( $self->user_repository->active->all ) );
 }
 
 sub delete {
@@ -123,8 +119,7 @@ sub delete {
         = $self->user_repository->find( { id => $self->session('user') } );
     my $user = $self->user_repository->find( { id => $self->stash('id') } );
 
-    return $self->render(
-        json => { err => 403, msg => 'Only the root user can modify admins' } )
+    return $self->render( json => { err => 403, msg => 'Only the root user can modify admins' } )
         if $user->is_root && not( $req_user->is_root );
 }
 

@@ -35,10 +35,7 @@ sub create {
     }
 
     my $db = $self->dashboard_repository->create($json);
-    $self->app->log->info( 'Creating dashboard with ID - '
-            . $db->id
-            . ' for user '
-            . $self->session('user') );
+    $self->app->log->info( 'Creating dashboard with ID - ' . $db->id . ' for user ' . $self->session('user') );
     return $self->render( json => { $db->get_inflated_columns } );
 }
 
@@ -71,10 +68,7 @@ sub update {
     return $self->render(
         json   => { err => 404, msg => 'Not found' },
         status => 404
-        )
-        unless my $db
-        = { $self->dashboard_repository->find( { id => $id } )->update($json)
-            ->get_inflated_columns };
+    ) unless my $db = { $self->dashboard_repository->find( { id => $id } )->update($json)->get_inflated_columns };
 
     return $self->render( json => $db );
 }

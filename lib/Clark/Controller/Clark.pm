@@ -37,8 +37,7 @@ sub login_index ($self) {
 sub login ($self) {
     $self->redirect_to('/dashboard') if ( $self->session('user') );
 
-    $self->session(
-        login_attempts => ( $self->session('login_attempts') || 0 ) + 1 );
+    $self->session( login_attempts => ( $self->session('login_attempts') || 0 ) + 1 );
 
     my $v = $self->validation;
 
@@ -52,12 +51,9 @@ sub login ($self) {
 
     if ( not( $self->_can_attempt_login ) ) {
         $self->session( last_login_attempt => time );
-        $self->app->log->info(
-            "Login attempt for user $user failed due to too many attempts");
+        $self->app->log->info("Login attempt for user $user failed due to too many attempts");
 
-        $self->stash( error =>
-                'You\'ve tried to login too many times recently, try again later'
-        );
+        $self->stash( error => 'You\'ve tried to login too many times recently, try again later' );
         return $self->render( status => 429, template => 'clark/index' );
     }
 

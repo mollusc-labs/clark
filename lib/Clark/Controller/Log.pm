@@ -24,21 +24,15 @@ sub find {
 }
 
 sub count {
-    my $self = shift;
-    my $count
-        = $self->_find->search( {},
-        { '+select' => [ { count => '*', -as => 'total' } ] } )
-        ->get_column('total');
+    my $self  = shift;
+    my $count = $self->_find->search( {}, { '+select' => [ { count => '*', -as => 'total' } ] } )->get_column('total');
     return $self->render( json => { count => $count } );
 }
 
 sub latest {
     my $self = shift;
     return $self->render(
-        json => Clark::Util::Inflate->many(
-            $self->log_repository->latest( $self->req->param('count') )
-        )
-    );
+        json => Clark::Util::Inflate->many( $self->log_repository->latest( $self->req->param('count') ) ) );
 }
 
 sub latest_ws {
@@ -50,20 +44,15 @@ sub latest_ws {
             my ( $c, $msg ) = @_;
             my $req = decode_json $msg;
             unless ( $req->{'date'} ) {
-                $self->app->log->info(
-                    'Got bad body from web-socket: ' . $msg );
+                $self->app->log->info( 'Got bad body from web-socket: ' . $msg );
                 $c->send( encode_json { err => 400, msg => 'Invalid json ' } );
                 return;
             }
 
-            my $date
-                = DateTime->from_epoch( epoch => $req->{'date'} ) || return;
+            my $date = DateTime->from_epoch( epoch => $req->{'date'} ) || return;
             $c->send(
                 encode_json(
-                    Clark::Util::Inflate->many(
-                        $self->log_repository->from_date( $date, DateTime->now,
-                            100 )->all
-                    )
+                    Clark::Util::Inflate->many( $self->log_repository->from_date( $date, DateTime->now, 100 )->all )
                 )
             );
         }
@@ -72,15 +61,8 @@ sub latest_ws {
 
 sub today {
     my $self = shift;
-    return $self->render(
-        json => [
-            Clark::Util::Inflate->many(
-                $self->log_repository->today(
-                    $self->req->param('service_name')
-                )->all
-            )
-        ]
-    );
+    return $self->render( json =>
+            [ Clark::Util::Inflate->many( $self->log_repository->today( $self->req->param('service_name') )->all ) ] );
 }
 
 sub create {
@@ -108,8 +90,7 @@ sub create {
     # Test if API key matcher matches service name
     unless ( $json->{'service_name'} =~ $self->stash('api_key')->{'matcher'} ) {
         return $self->render(
-            json =>
-                { err => 401, msg => 'Service name not authorized by matcher' },
+            json   => { err => 401, msg => 'Service name not authorized by matcher' },
             status => 401
         );
     }
@@ -127,8 +108,7 @@ sub service_names {
     my $self = shift;
     my @names
         = map { $_->get_column('service_name') }
-        $self->log_repository->search( {},
-        { columns => [qw/service_name/], distinct => 1 } );
+        $self->log_repository->search( {}, { columns => [qw/service_name/], distinct => 1 } );
     return $self->render( json => \@names );
 }
 
@@ -136,8 +116,7 @@ sub hostnames {
     my $self = shift;
     my @names
         = map { $_->get_column('hostname') }
-        $self->log_repository->search( {},
-        { columns => [qw/hostname/], distinct => 1 } );
+        $self->log_repository->search( {}, { columns => [qw/hostname/], distinct => 1 } );
     return $self->render( json => \@names );
 }
 
