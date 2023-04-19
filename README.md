@@ -15,6 +15,7 @@ Clark is currently in a work-in-progress state. The following things still need 
 - [X] Log-in
 - [X] Custom dashboards
 - [X] Api Keys 
+- [X] Full-text search
 
 ## How to use
 1. Make sure you have Perl >5.10 and the following packages installed:
