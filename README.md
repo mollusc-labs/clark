@@ -1,7 +1,7 @@
 # Clark
 A free and open-source logging dashboard, and REST API for `rsyslog` and theoretically any other syslog-daemon.
 
-![image](https://user-images.githubusercontent.com/75388349/232936436-3a441a52-83e9-4c91-8953-da246983423e.png)
+![image](https://user-images.githubusercontent.com/75388349/232936550-233012d6-a2e4-402a-878a-7401902152c7.png)
 
 ## TODO
 Clark is currently in a work-in-progress state. The following things still need to be done:
