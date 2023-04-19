@@ -1,5 +1,6 @@
 # Clark
 A free and open-source logging dashboard, and REST API for `rsyslog` and theoretically any other syslog-daemon.
+To get started, checkout the `QUICKSTART.md` file at the root of the project.
 
 ![image](https://user-images.githubusercontent.com/75388349/232936550-233012d6-a2e4-402a-878a-7401902152c7.png)
 
