@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ -z '.env' ]; then 
-    echo 'No .env detected, creating one now'
-    perl ./make-env.pl
+    echo 'No .env detected, make sure you run setup.pl before anything else.'
+    exit 1
 fi
 [ "$EUID" -ne 0 ] && echo 'You need to be root to run this.' && exit 1
 

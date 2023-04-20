@@ -21,7 +21,8 @@ WriteMakefile(
         'DateTime'                => 0,
         'Crypt::JWT'              => 0,
         'DateTime::Format::MySQL' => 0,
-        'JSON::Validator'         => 0
+        'JSON::Validator'         => 0,
+        'Data::UUID'              => 0
     },
     test => { TESTS => 't/*.t t/*/*.t' }
 );
