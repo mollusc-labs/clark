@@ -20,7 +20,7 @@ our $VERSION = '0.1';
 my $c = container 'Clark' => as {
     container 'Database' => as {
         if ( $ENV{'CLARK_PRODUCTION'} ) {
-            service 'dsn' => "DBI:mysql:database=clark;host=clark_database";
+            service 'dsn' => "DBI:mysql:database=clark;host=" . $ENV{MYSQL_HOST};
         }
         else {
             service 'dsn' => "DBI:mysql:database=clark;host=127.0.0.1";
