@@ -15,8 +15,7 @@ sub cut {
 
 sub by_name_and_pass {
     my ( $self, $name, $pass ) = @_;
-    return $self->cut->find(
-        { name => $name, password => Clark::Util::Crypt->hash($pass) } );
+    return $self->find( { name => $name, password => Clark::Util::Crypt->hash($pass) } );
 }
 
 sub identify {
