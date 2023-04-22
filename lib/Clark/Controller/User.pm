@@ -99,18 +99,24 @@ sub update {
     my $sanitized_user
         = $self->user_repository->find( { id => $self->stash('id') }, { columns => [qw/name is_admin is_root/] } );
 
-    return $self->render( json => $sanitized_user->get_inflated_columns );
+    return $self->render( json => { $sanitized_user->get_inflated_columns } );
 }
 
 sub identify {
     my $self = shift;
-    my %user = $self->user_repository->identify( $self->session('user') )->get_inflated_columns;
-    return $self->render( json => \%user );
+
+    return $self->render(
+        json => { $self->user_repository->identify( $self->session('user') )->get_inflated_columns } );
 }
 
 sub find {
     my $self = shift;
-    return $self->render( json => Clark::Util::Infalate->many( $self->user_repository->active->all ) );
+
+    return $self->render(
+        json => Clark::Util::Infalate->many(
+            $self->user_repository->active->search( id => { -not_like => $self->session('user') } )->all
+        )
+    );
 }
 
 sub delete {

@@ -4,8 +4,6 @@ import { defineProps } from 'vue'
 const props = defineProps<{ user: User | undefined }>()
 </script>
 <template>
-    <v-card v-if="props.user">
-    </v-card>
-    <v-card v-if="!props.user" title="Please select a user">
+    <v-card :title="props.user ? props.user?.name : 'Please select a user.'">
     </v-card>
 </template>
