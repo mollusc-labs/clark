@@ -15,10 +15,9 @@ print "Welcome to the clark environment setup script.\n\n";
 print "Please provide the following information.\n\n";
 $env{'MYSQL_PASS'} = prompt 'Database password:', -echo => '*';
 sleep 1;
-print
-    "\nWill your database be hosted locally? If not please provide the hostname. (Leave empty to let Clark set it up)\n\n";
+print "\nWill your database be hosted locally? If not please provide the hostname. (Leave empty for localhost)\n\n";
 $env{'MYSQL_HOST'} = prompt 'Database host: ';
-$env{'MYSQL_HOST'} = 'clark_database' unless $env{'MYSQL_HOST'} ne "";
+$env{'MYSQL_HOST'} = 'localhost' unless $env{'MYSQL_HOST'} ne "";
 sleep 1;
 
 print "\nPlease input the credentials you wish to use for the default clark account (you can change these later).\n\n";

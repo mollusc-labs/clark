@@ -14,7 +14,7 @@ if [ -x "$(command -v apk)" ];       then sudo apk add --no-cache $packagesNeede
 elif [ -x "$(command -v apt-get)" ]; then sudo apt-get -y install $packagesNeeded
 elif [ -x "$(command -v dnf)" ];     then sudo dnf install $packagesNeeded
 elif [ -x "$(command -v zypper)" ];  then sudo zypper install 'rsyslog-module-mysql'
-else echo 'Could not identify package manager to install "rsyslog-mysql" please install it yourself and retry.'
+else echo 'Could not identify package manager to install "rsyslog-mysql" please install it yourself and re-run this.'
 fi
 
 export $(cat '.env' | xargs)

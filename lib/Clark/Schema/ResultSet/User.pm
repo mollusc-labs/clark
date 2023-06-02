@@ -8,11 +8,6 @@ use Clark::Util::Crypt;
 use strict;
 use warnings;
 
-sub active {
-    my $self = shift;
-    return $self->search( { is_active => 1 } );
-}
-
 sub cut {
     my $self = shift;
     return $self->search( {}, { columns => [qw(id name is_admin)] } );

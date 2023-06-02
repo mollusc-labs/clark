@@ -4,9 +4,10 @@ use strict;
 use warnings;
 
 use Crypt::Argon2;
-use Carp;
+use Carp qw(croak);
+use Readonly;
 
-my $salt = $ENV{'CLARK_SALT'};
+Readonly::Scalar my $salt => $ENV{'CLARK_SALT'};
 
 sub hash {
     my ( $self, $pass ) = @_;

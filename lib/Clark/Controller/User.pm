@@ -113,8 +113,8 @@ sub find {
     my $self = shift;
 
     return $self->render(
-        json => Clark::Util::Infalate->many(
-            $self->user_repository->active->search( id => { -not_like => $self->session('user') } )->all
+        json => Clark::Util::Inflate->many(
+            $self->user_repository->search( { id => { -not_like => $self->session('user') } } )->all
         )
     );
 }

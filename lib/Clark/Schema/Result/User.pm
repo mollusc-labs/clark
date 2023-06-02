@@ -33,7 +33,7 @@ __PACKAGE__->add_columns(
         data_type => 'tinyint',
         size      => 1
     },
-    qw/last_login created_at /
+    qw/last_login created_at/
 );
 
 __PACKAGE__->mk_group_accessors();
