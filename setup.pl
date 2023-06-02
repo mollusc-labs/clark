@@ -17,7 +17,7 @@ $env{'MYSQL_PASS'} = prompt 'Database password:', -echo => '*';
 sleep 1;
 print "\nWill your database be hosted locally? If not please provide the hostname. (Leave empty for localhost)\n\n";
 $env{'MYSQL_HOST'} = prompt 'Database host: ';
-$env{'MYSQL_HOST'} = 'localhost' unless $env{'MYSQL_HOST'} ne "";
+$env{'MYSQL_HOST'} = '127.0.0.1' unless $env{'MYSQL_HOST'} ne "";
 sleep 1;
 
 print "\nPlease input the credentials you wish to use for the default clark account (you can change these later).\n\n";
@@ -38,6 +38,8 @@ open( my $fh, '>', '.env' ) || croak 'Could not open file .env';
 chomp($str);
 print $fh "$str";
 close $fh;
+
+print "\n Setting up rsyslog...\n";
 
 system qq(sudo ./rsyslog.sh);
 

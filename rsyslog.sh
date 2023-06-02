@@ -5,7 +5,7 @@ if [ -z '.env' ]; then
 fi
 [ "$EUID" -ne 0 ] && echo 'You need to be root to run this.' && exit 1
 
-packagesNeeded='rsyslog-mysql'
+packagesNeeded='rsyslog rsyslog-mysql'
 
 echo "You may be asked if you want to setup a database during this process, please decline"
 sleep 5
