@@ -6,7 +6,7 @@
         ```
     - Or on other distros with CPAN:
         ```
-        sudo cpan install IO::Prompter Term::ReadKey
+        cpan -I IO::Prompter Term::ReadKey
         ```
 2. Run the `setup.pl`, press no if you're asked to setup mysql-rsyslog
 3. Ensure you have `docker` and `docker-compose`
