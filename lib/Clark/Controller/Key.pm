@@ -2,11 +2,11 @@ package Clark::Controller::Key;
 
 use strict;
 use warnings;
+
 use Crypt::JWT qw(encode_jwt);
-use Mojo::Base 'Mojolicious::Controller', -signatures;
-use Carp qw(croak);
+use Carp       qw(croak);
 use Clark::Util::UUID;
-use Data::Dumper;
+use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 sub create {
     my $self = shift;
@@ -64,3 +64,4 @@ sub delete {
 }
 
 1;
+

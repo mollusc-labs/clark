@@ -1,14 +1,12 @@
 package Clark;
 
-use strict;
 use warnings;
 use experimental;
-use v5.36;
 
 use Mojo::Base 'Mojolicious', -signatures;
 use Mojo::Log;
 use Mojolicious::Validator::Validation;
-use Carp q<croak>;
+use Carp q(croak);
 use Bread::Board;
 use Clark::Util::Crypt;
 use Crypt::JWT qw(decode_jwt);
@@ -324,3 +322,4 @@ sub startup ($self) {
 }
 
 1;
+

@@ -2,6 +2,7 @@ package Clark::Schema::Base::ResultSet;
 
 use strict;
 use warnings;
+
 use Clark::Util::UUID;
 use base 'DBIx::Class::ResultSet';
 
@@ -13,3 +14,4 @@ sub create {
 }
 
 1;
+

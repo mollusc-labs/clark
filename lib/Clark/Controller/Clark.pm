@@ -2,7 +2,7 @@ package Clark::Controller::Clark;
 
 use strict;
 use warnings;
-use v5.36;
+
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 use DateTime;
 

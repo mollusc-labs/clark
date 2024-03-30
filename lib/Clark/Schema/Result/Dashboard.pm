@@ -2,6 +2,7 @@ package Clark::Schema::Result::Dashboard;
 
 use strict;
 use warnings;
+
 use DateTime;
 use base 'DBIx::Class::Core';
 
@@ -22,3 +23,4 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('id');
 
 1;
+

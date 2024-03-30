@@ -1,12 +1,12 @@
 package Clark::Schema::ResultSet::Log;
 
-use parent 'Clark::Schema::Base::ResultSet';
-use DateTime;
-use Scalar::Util qw(looks_like_number);
-use Data::Dumper;
 use strict;
 use warnings;
-use v5.10;    # for state
+
+use parent 'Clark::Schema::Base::ResultSet';
+use feature qw(state);
+use DateTime;
+use Scalar::Util qw(looks_like_number);
 
 sub by_params {
     my $self = shift;
@@ -23,7 +23,7 @@ sub by_params {
     delete $args->{'page'};
     delete $args->{'size'};
 
-   # Custom full-text search for text fields: message, service_name and hostname
+    # Custom full-text search for text fields: message, service_name and hostname
     if ( $args->{'text'} ) {
         return $self->result_source->storage->dbh_do(
             sub {
@@ -32,11 +32,9 @@ sub by_params {
                 my $t = $args->{'text'};
                 delete $args->{'text'};
 
-                my $to
-                    = $args->{'to'} || $dtf->format_datetime( DateTime->now );
+                my $to   = $args->{'to'} || $dtf->format_datetime( DateTime->now );
                 my $from = $args->{'from'}
-                    || $dtf->format_datetime(
-                    DateTime->from_epoch( epoch => 0 ) );
+                    || $dtf->format_datetime( DateTime->from_epoch( epoch => 0 ) );
 
                 delete $args->{'from'};
                 delete $args->{'to'};
@@ -116,8 +114,7 @@ sub from_date {
 }
 
 sub by_severity {
-    return shift->search( { severity => pop },
-        { order_by => { -desc => 'created_at' } } );
+    return shift->search( { severity => pop }, { order_by => { -desc => 'created_at' } } );
 }
 
 sub latest {
@@ -142,13 +139,13 @@ sub today {
 
     $rows = 20 unless looks_like_number $rows;
 
-    return $c->from_date( DateTime->from_epoch( epoch => ( time - $delta ) ) )
-        ->search(
+    return $c->from_date( DateTime->from_epoch( epoch => ( time - $delta ) ) )->search(
         { service_name => $service_name },
         {   order_by => { -desc => 'created_at ' },
             rows     => $rows
         }
-        );
+    );
 }
 
 1;
+

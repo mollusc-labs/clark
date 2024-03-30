@@ -2,12 +2,11 @@ package Clark::Controller::Log;
 
 use strict;
 use warnings;
-use experimental qw(signatures);
-use Mojo::Util   qw(secure_compare);
-use Mojo::Base 'Mojolicious::Controller', -signatures;
+
+use Mojo::Util qw(secure_compare);
+use Mojo::Base 'Mojolicious::Controller';
 use Mojo::JSON qw(encode_json decode_json);
 use Clark::Util::Inflate;
-use Data::Dumper;
 use DateTime;
 use Data::UUID;
 use Scalar::Util qw(looks_like_number);

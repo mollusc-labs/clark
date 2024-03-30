@@ -2,6 +2,7 @@ package Clark::Validator::Log;
 
 use warnings;
 use strict;
+
 use JSON::Validator;
 use JSON::Validator::Joi 'joi';
 use Mojo::Base -base;
@@ -26,8 +27,5 @@ sub validate {
     return \@errors;
 }
 
-sub new {
-    return bless {}, pop;
-}
-
 1;
+

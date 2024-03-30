@@ -2,8 +2,8 @@ package Clark::Controller::User;
 
 use strict;
 use warnings;
-use experimental qw(signatures);
-use Mojo::Util   qw(secure_compare);
+
+use Mojo::Util qw(secure_compare);
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 use Clark::Util::Crypt;
 use Data::Dumper;
@@ -130,3 +130,4 @@ sub delete {
 }
 
 1;
+
